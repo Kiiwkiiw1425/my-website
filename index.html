@@ -2,91 +2,70 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <title>อัพเดทโปรแกรมประจำวัน</title>
-  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>อัพเดทโปรแกรมประจำวัน</title>
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #f9f9f9;
+      font-family: Arial, sans-serif;
       padding: 20px;
-      color: #333;
+      max-width: 800px;
+      margin: auto;
     }
     h2 {
-      color: #2c3e50;
+      text-align: center;
     }
-    .filter-section {
+    .filter-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       margin-bottom: 20px;
-      background: #fff;
-      padding: 15px;
-      border-radius: 10px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     }
-    label {
-      margin-right: 10px;
+    .filter-container input {
+      margin: 5px;
+      padding: 10px;
+      font-size: 16px;
     }
-    input[type="date"] {
-      padding: 6px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      margin-bottom: 10px;
-    }
-    button {
-      padding: 6px 12px;
-      margin: 10px 5px 0 0;
-      background-color: #2ecc71;
-      border: none;
-      color: white;
-      border-radius: 6px;
+    .filter-container button {
+      margin: 5px;
+      padding: 10px 20px;
+      font-size: 16px;
       cursor: pointer;
-    }
-    button:hover {
-      background-color: #27ae60;
     }
     .table-container {
       overflow-x: auto;
     }
     table {
       width: 100%;
-      min-width: 600px;
       border-collapse: collapse;
-      background: #fff;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      margin-top: 10px;
     }
     th, td {
       border: 1px solid #ddd;
-      padding: 12px;
+      padding: 8px;
       text-align: left;
     }
     th {
-      background-color: #f1f1f1;
+      background-color: #f2f2f2;
     }
-    #loading {
-      font-style: italic;
-      color: gray;
-    }
-
     @media (max-width: 600px) {
-      body {
-        padding: 10px;
-      }
-      input[type="date"], button {
+      .filter-container {
         width: 100%;
-        margin-top: 5px;
+      }
+      .filter-container input, .filter-container button {
+        width: 100%;
+        box-sizing: border-box;
       }
     }
   </style>
 </head>
 <body>
+  <h2>อัพเดทโปรแกรมประจำวัน</h2>
 
-  <h2>รายการอัปเดต</h2>
-
-  <div class="filter-section">
+  <div class="filter-container">
     <label for="start-date">ตั้งแต่วันที่:</label>
     <input type="date" id="start-date">
     <label for="end-date">ถึงวันที่:</label>
     <input type="date" id="end-date">
-    <br>
     <button onclick="filterData()">กรองข้อมูล</button>
     <button onclick="resetFilter()">ล้างค่า</button>
   </div>
@@ -94,89 +73,73 @@
   <div id="loading">กำลังโหลดข้อมูล...</div>
   <div id="data-table" class="table-container"></div>
 
-<script>
-  const sheetURL = 'https://docs.google.com/spreadsheets/d/1xRqnFHRWL3l_-6-LNJ_LM5Bejiv0aV5JwcV9PtzC-Nk/gviz/tq?sheet=Sheet1';
-  const dateColumnName = 'วันเดือนปี'; // ← ระบุคอลัมน์วันที่ชัดเจนตรงนี้
-  let originalData = [];
-  let columnHeaders = [];
+  <script>
+    const sheetURL = 'https://docs.google.com/spreadsheets/d/1xRqnFHRWL3l_-6-LNJ_LM5Bejiv0aV5JwcV9PtzC-Nk/gviz/tq?sheet=Sheet1';
+    let originalData = [];
+    let columnHeaders = [];
 
-  google.charts.load('current', { packages: ['table'] });
-  google.charts.setOnLoadCallback(loadData);
-
-  function loadData() {
-    fetch(sheetURL)
-      .then(res => res.text())
-      .then(dataText => {
-        const json = JSON.parse(dataText.match(/google\.visualization\.Query\.setResponse\(([\s\S\w]+)\)/)[1]);
-        columnHeaders = json.table.cols.map(col => col.label);
-        originalData = json.table.rows.map(row => {
-          const rowData = {};
-          row.c.forEach((cell, i) => {
-            rowData[columnHeaders[i]] = cell ? cell.v : '';
+    // โหลดข้อมูลจาก Google Sheets
+    function loadData() {
+      fetch(sheetURL)
+        .then(res => res.text())
+        .then(dataText => {
+          const json = JSON.parse(dataText.match(/google\.visualization\.Query\.setResponse\(([\s\S\w]+)\)/)[1]);
+          columnHeaders = json.table.cols.map(col => col.label);
+          originalData = json.table.rows.map(row => {
+            const rowData = {};
+            row.c.forEach((cell, i) => {
+              rowData[columnHeaders[i]] = cell ? (cell.v instanceof Date ? cell.v : String(cell.v).trim()) : '';
+            });
+            return rowData;
           });
-          return rowData;
+          document.getElementById('loading').style.display = 'none'; // ซ่อนข้อความโหลด
+          displayData(originalData);
         });
-        displayData(originalData);
-      });
-  }
-
-  function displayData(data) {
-    const tableDiv = document.getElementById('data-table');
-    if (data.length === 0) {
-      tableDiv.innerHTML = '<p>ไม่พบข้อมูลในช่วงวันที่ที่เลือก</p>';
-      return;
     }
 
-    let html = `<table><tr>`;
-    columnHeaders.forEach(header => {
-      html += `<th>${header}</th>`;
-    });
-    html += `</tr>`;
-
-    data.forEach(row => {
-      html += `<tr>`;
+    // แสดงข้อมูลในตาราง
+    function displayData(data) {
+      const tableDiv = document.getElementById('data-table');
+      if (data.length === 0) {
+        tableDiv.innerHTML = '<p>ไม่พบข้อมูล</p>';
+        return;
+      }
+      let html = '<table><thead><tr>';
       columnHeaders.forEach(header => {
-        html += `<td>${row[header]}</td>`;
+        html += `<th>${header}</th>`;
       });
-      html += `</tr>`;
-    });
-
-    html += `</table>`;
-    tableDiv.innerHTML = html;
-  }
-
-function convertToDate(thaiDate) {
-  if (!thaiDate) return null;
-  // รองรับทั้ง 10-03-2568 และ 10/03/2568
-  const separator = thaiDate.includes('/') ? '/' : '-';
-  const [day, month, year] = thaiDate.split(separator).map(part => parseInt(part));
-  return new Date(year - 543, month - 1, day);
-}
-  
-  function filterData() {
-    const start = document.getElementById('start-date').value;
-    const end = document.getElementById('end-date').value;
-    if (!start || !end) {
-      alert('กรุณาเลือกวันที่เริ่มและสิ้นสุด');
-      return;
+      html += '</tr></thead><tbody>';
+      data.forEach(row => {
+        html += '<tr>';
+        columnHeaders.forEach(header => {
+          html += `<td>${row[header]}</td>`;
+        });
+        html += '</tr>';
+      });
+      html += '</tbody></table>';
+      tableDiv.innerHTML = html;
     }
-    const startDate = new Date(start);
-    const endDate = new Date(end);
 
-    const filtered = originalData.filter(row => {
-      const rowDate = convertToDate(row[dateColumnName]);
-      return rowDate >= startDate && rowDate <= endDate;
-    });
+    // แปลงวันที่ในรูปแบบ "10-03-2568" หรือ "10/03/2568" เป็น Date object
+    function convertToDate(thaiDate) {
+      if (!thaiDate) return null;
+      const separator = thaiDate.includes('/') ? '/' : '-';
+      const [day, month, year] = thaiDate.split(separator).map(part => parseInt(part, 10));
+      return new Date(year - 543, month - 1, day);
+    }
 
-    displayData(filtered);
-  }
-
-  function resetFilter() {
-    document.getElementById('start-date').value = '';
-    document.getElementById('end-date').value = '';
-    displayData(originalData);
-  }
-</script>
-
-</body>
-</html>
+    // ฟิลเตอร์ข้อมูลตามช่วงวันที่
+    function filterData() {
+      const start = document.getElementById('start-date').value;
+      const end = document.getElementById('end-date').value;
+      if (!start || !end) {
+        alert('กรุณาเลือกวันที่เริ่มและสิ้นสุด');
+        return;
+      }
+      const startDate = new Date(start);
+      const endDate = new Date(end);
+      const filtered = originalData.filter(row => {
+        const rowDate = convertToDate(row[columnHeaders[0]]);
+        return rowDate >= startDate && rowDate
+::contentReference[oaicite:0]{index=0}
+ 
