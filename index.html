@@ -12,10 +12,8 @@
         let originalData, table;
 
         function drawTable() {
-            let queryString = encodeURIComponent('SELECT A, B, C ORDER BY A DESC');
-            let query = new google.visualization.Query(
-                'https://docs.google.com/spreadsheets/d/1xRqnFHRWL3l_-6-LNJ_LM5Bejiv0aV5JwcV9PtzC-Nk/gviz/tq?sheet=Sheet1&tq=' + queryString
-            );
+             var queryString = encodeURIComponent('SELECT * ORDER BY A DESC');  // คอลัมน์ A คือวันที่
+             var query = new google.visualization.Query('https://docs.google.com/spreadsheets/d/1xRqnFHRWL3l_-6-LNJ_LM5Bejiv0aV5JwcV9PtzC-Nk/gviz/tq?sheet=Sheet1&tq=' + queryString);
 
             query.send(response => {
                 if (response.isError()) {
