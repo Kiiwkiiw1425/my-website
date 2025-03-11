@@ -88,7 +88,7 @@
         renderTable(dataRows);
       });
 
-    // ฟังก์ชันแปลงวันที่จาก พ.ศ. เป็น ค.ศ. และแสดงผลเป็น format 10/03/2568
+    // ฟังก์ชันแปลงวันที่จาก พ.ศ. เป็น ค.ศ. และแสดงผลเป็น format DD/MM/YYYY
     function formatDate(dateStr) {
       if (!dateStr) return '';
       const sep = dateStr.includes('/') ? '/' : '-';
@@ -97,7 +97,7 @@
       return `${d < 10 ? '0' + d : d}/${m < 10 ? '0' + m : m}/${year}`;
     }
 
-    // ฟังก์ชันแปลงเป็น Date เพื่อการกรอง
+    // ฟังก์ชันแปลงวันที่จาก String เป็น Date เพื่อใช้ในการกรอง
     function toDate(str) {
       if (!str) return null;
       const sep = str.includes('/') ? '/' : '-';
@@ -118,20 +118,13 @@
     }
 
     function filterData() {
-      const startDate = document.getElementById('start-date').value;
-      const endDate = document.getElementById('end-date').value;
-
-      // ตรวจสอบว่าเลือกวันที่ครบแล้วหรือไม่
-      if (!startDate || !endDate) return alert('กรุณาเลือกวันที่ทั้งสอง');
-      
-      const start = toDate(startDate);
-      const end = toDate(endDate);
-      
+      const start = new Date(document.getElementById('start-date').value);
+      const end = new Date(document.getElementById('end-date').value);
+      if (!start || !end) return alert('กรุณาเลือกวันที่ทั้งสอง');
       const filtered = dataRows.filter(r => {
-        const rowDate = toDate(r[headers[0]]);
-        return rowDate && rowDate >= start && rowDate <= end;
+        const d = toDate(r[headers[0]]);
+        return d && d >= start && d <= end;
       });
-      
       renderTable(filtered);
     }
 
