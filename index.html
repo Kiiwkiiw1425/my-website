@@ -85,15 +85,14 @@
                 filteredData.addColumn('string', 'ชื่อโพสต์');
                 filteredData.addColumn('string', 'รายละเอียด');
 
-                var startYear = parseInt(startDate.split('-')[0]);
-                var endYear = parseInt(endDate.split('-')[0]);
+                var startDateObj = new Date(startDate);
+                var endDateObj = new Date(endDate);
 
                 for (var i = 0; i < originalData.getNumberOfRows(); i++) {
                     var date = originalData.getValue(i, 0);  // คอลัมน์ A: วันที่อัปเดต
                     var currentDate = new Date(date);
-                    var startDateObj = new Date(startYear, parseInt(startDate.split('-')[1]) - 1, parseInt(startDate.split('-')[2]));
-                    var endDateObj = new Date(endYear, parseInt(endDate.split('-')[1]) - 1, parseInt(endDate.split('-')[2]));
 
+                    // เปรียบเทียบวันที่
                     if (currentDate >= startDateObj && currentDate <= endDateObj) {
                         var row = [];
                         row.push(date);
@@ -125,7 +124,7 @@
         <input type="date" id="start_date" required>
         <label for="end_date">สิ้นสุดวันที่:</label>
         <input type="date" id="end_date" required>
-        <button onclick="filterData()">ค้นหา</button>
+        <button onclick="filterData()">กรองข้อมูล</button>
         <button onclick="clearFilter()">ล้างข้อมูล</button>
         <br>
     </div>
