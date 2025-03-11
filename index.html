@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>อัพเดทโปรแกรมประจำวัน</title>
+  <title>รายการอัปเดต</title>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -60,7 +60,7 @@
   </style>
 </head>
 <body>
-  <h2>📋 อัพเดทโปรแกรมประจำวัน</h2>
+  <h2>📋 รายการอัปเดต</h2>
   <div class="controls">
     <input type="date" id="start-date">
     <input type="date" id="end-date">
@@ -69,7 +69,6 @@
   </div>
   <div id="loading">🔄 กำลังโหลดข้อมูล...</div>
   <div id="data-table" class="table-container"></div>
-  
 
   <script>
     const sheetURL = 'https://docs.google.com/spreadsheets/d/1xRqnFHRWL3l_-6-LNJ_LM5Bejiv0aV5JwcV9PtzC-Nk/gviz/tq?sheet=Sheet1';
@@ -89,22 +88,33 @@
         renderTable(dataRows);
       });
 
+    // ฟังก์ชันแปลงวันที่จาก พ.ศ. เป็น ค.ศ. และแสดงผลเป็น format 10/03/2568
+    function formatDate(dateStr) {
+      if (!dateStr) return '';
+      const sep = dateStr.includes('/') ? '/' : '-';
+      const [d, m, y] = dateStr.split(sep).map(n => parseInt(n));
+      const year = y - 543; // แปลง พ.ศ. เป็น ค.ศ.
+      return `${d < 10 ? '0' + d : d}/${m < 10 ? '0' + m : m}/${year}`;
+    }
+
+    // ฟังก์ชันแปลงเป็น Date เพื่อการกรอง
+    function toDate(str) {
+      if (!str) return null;
+      const sep = str.includes('/') ? '/' : '-';
+      const [d, m, y] = str.split(sep).map(n => parseInt(n));
+      const year = y - 543;
+      return new Date(year, m - 1, d);
+    }
+
     function renderTable(data) {
       const table = document.getElementById('data-table');
       if (!data.length) return table.innerHTML = '<p style="text-align:center;">❌ ไม่พบข้อมูล</p>';
       let html = `<table><thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>`;
       data.forEach(row => {
-        html += '<tr>' + headers.map(h => `<td>${row[h] || ''}</td>`).join('') + '</tr>';
+        html += `<tr>${headers.map(h => `<td>${h === headers[0] ? formatDate(row[h]) : row[h] || ''}</td>`).join('')}</tr>`;
       });
       html += '</tbody></table>';
       table.innerHTML = html;
-    }
-
-    function toDate(str) {
-      if (!str) return null;
-      const sep = str.includes('/') ? '/' : '-';
-      const [d, m, y] = str.split(sep).map(n => parseInt(n));
-      return new Date(y - 543, m - 1, d);
     }
 
     function filterData() {
