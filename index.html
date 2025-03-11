@@ -1,137 +1,129 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Landing Page Updates</title>
-    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-    <script type="text/javascript">
-        google.charts.load('current', {
-            packages: ['table']
-        });
-        google.charts.setOnLoadCallback(drawTable);
-
-        var originalData;  // ข้อมูลดั้งเดิมจาก Google Sheets
-
-        // ฟังก์ชันดึงข้อมูลจาก Google Sheets และแสดงตาราง
-        function drawTable() {
-            var queryString = encodeURIComponent('SELECT * ORDER BY A DESC');  // คอลัมน์ A คือวันที่
-            var query = new google.visualization.Query('https://docs.google.com/spreadsheets/d/1xRqnFHRWL3l_-6-LNJ_LM5Bejiv0aV5JwcV9PtzC-Nk/gviz/tq?sheet=Sheet1&tq=' + queryString);
-
-            query.send(function(response) {
-                if (response.isError()) {
-                    console.log('Error: ' + response.getMessage() + ' ' + response.getDetailedMessage());
-                    return;
-                }
-
-                originalData = response.getDataTable(); // บันทึกข้อมูลดั้งเดิม
-
-                var table = new google.visualization.Table(document.getElementById('table_div'));
-                table.draw(originalData, {showRowNumber: false, width: '100%', height: '100%'});
-                
-                // ตั้งค่าฟอร์มวันที่
-                setDateInputs();
-            });
-        }
-
-        // ดึงข้อมูลวันที่จากตาราง
-        function getTableDates() {
-            var dates = [];
-            var table = document.getElementById('table_div').getElementsByTagName('table')[0];
-            var rows = table.getElementsByTagName('tr');
-
-            // เริ่มที่แถวที่ 1 (เพราะแถวที่ 0 คือ header)
-            for (var i = 1; i < rows.length; i++) {
-                var dateCell = rows[i].getElementsByTagName('td')[0];  // คอลัมน์วันที่ (คอลัมน์ A)
-                if (dateCell) {
-                    var date = dateCell.textContent || dateCell.innerText;
-                    dates.push(date);
-                }
-            }
-            return dates;
-        }
-
-        // ตั้งค่าวันที่ให้กับฟอร์มวันที่เริ่มต้นและสิ้นสุด
-        function setDateInputs() {
-            var dates = getTableDates();
-            if (dates.length > 0) {
-                var firstDate = dates[0];  // ใช้วันที่แรกจากตารางเป็นค่าเริ่มต้น
-                var lastDate = dates[dates.length - 1];  // ใช้วันที่สุดท้ายจากตารางเป็นค่าสิ้นสุด
-
-                document.getElementById('start_date').value = formatDateToInput(firstDate);
-                document.getElementById('end_date').value = formatDateToInput(lastDate);
-            }
-        }
-
-        // แปลงวันที่จาก พ.ศ. เป็น ค.ศ.
-        function formatDateToInput(dateStr) {
-            var monthNames = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
-            var dateParts = dateStr.split(" ");
-            var day = dateParts[0];
-            var month = monthNames.indexOf(dateParts[1]) + 1;
-            var year = parseInt(dateParts[2]) - 543;
-
-            return year + "-" + (month < 10 ? "0" + month : month) + "-" + (day < 10 ? "0" + day : day);
-        }
-
-        // ฟังก์ชันกรองข้อมูลตามวันที่
-        function filterData() {
-            var startDate = document.getElementById('start_date').value;
-            var endDate = document.getElementById('end_date').value;
-
-            if (startDate && endDate) {
-                var filteredData = new google.visualization.DataTable();
-                filteredData.addColumn('string', 'วันที่อัปเดต');
-                filteredData.addColumn('string', 'ชื่อโพสต์');
-                filteredData.addColumn('string', 'รายละเอียด');
-
-                var startDateObj = new Date(startDate);
-                var endDateObj = new Date(endDate);
-
-                // กรองข้อมูลตามวันที่
-                for (var i = 0; i < originalData.getNumberOfRows(); i++) {
-                    var date = originalData.getValue(i, 0);  // คอลัมน์ A: วันที่อัปเดต
-                    var currentDate = new Date(date);
-
-                    // เปรียบเทียบวันที่
-                    if (currentDate >= startDateObj && currentDate <= endDateObj) {
-                        var row = [];
-                        row.push(date);
-                        row.push(originalData.getValue(i, 1));  // ชื่อโพสต์
-                        row.push(originalData.getValue(i, 2));  // รายละเอียด
-                        filteredData.addRow(row);
-                    }
-                }
-
-                // อัปเดตตารางด้วยข้อมูลที่กรองแล้ว
-                var table = new google.visualization.Table(document.getElementById('table_div'));
-                table.draw(filteredData, {showRowNumber: false, width: '100%', height: '100%'});
-            }
-        }
-
-        // ฟังก์ชันล้างข้อมูลกรอง
-        function clearFilter() {
-            document.getElementById('start_date').value = "";
-            document.getElementById('end_date').value = "";
-            drawTable();  // เรียกฟังก์ชันดึงข้อมูลทั้งหมดและแสดงใหม่
-        }
-    </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>อัพเดทโปรแกรมประจำวัน</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      padding: 1rem;
+      max-width: 800px;
+      margin: auto;
+      background: #f9f9f9;
+    }
+    h2 { text-align: center; color: #333; }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin: 1rem 0;
+    }
+    input[type="date"], button {
+      padding: 0.5rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    button {
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover { background: #0056b3; }
+    .table-container {
+      overflow-x: auto;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 500px;
+    }
+    th, td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+    }
+    th {
+      background-color: #f1f1f1;
+      color: #444;
+    }
+    #loading {
+      text-align: center;
+      color: #777;
+      padding: 1rem;
+    }
+  </style>
 </head>
 <body>
-    <h1>อัพเดทโปรแกรมประจำวัน</h1>
+  <h2>📋 อัพเดทโปรแกรมประจำวัน</h2>
+  <div class="controls">
+    <input type="date" id="start-date">
+    <input type="date" id="end-date">
+    <button onclick="filterData()">กรอง</button>
+    <button onclick="resetFilter()">ล้าง</button>
+  </div>
+  <div id="loading">🔄 กำลังโหลดข้อมูล...</div>
+  <div id="data-table" class="table-container"></div>
 
-    <!-- ฟอร์มสำหรับกรอกช่วงวันที่ -->
-    <div>
-        <label for="start_date">เริ่มต้นวันที่:</label>
-        <input type="date" id="start_date" required>
-        <label for="end_date">สิ้นสุดวันที่:</label>
-        <input type="date" id="end_date" required>
-        <button onclick="filterData()">กรองข้อมูล</button>
-        <button onclick="clearFilter()">ล้างข้อมูล</button>
-        <br>
-    </div>
-    <br>
-    <!-- ตารางแสดงข้อมูล -->
-    <div id="table_div"></div>
+  <script>
+    const sheetURL = 'https://docs.google.com/spreadsheets/d/1xRqnFHRWL3l_-6-LNJ_LM5Bejiv0aV5JwcV9PtzC-Nk/gviz/tq?sheet=Sheet1';
+    let dataRows = [], headers = [];
+
+    fetch(sheetURL)
+      .then(res => res.text())
+      .then(text => {
+        const json = JSON.parse(text.match(/google\.visualization\.Query\.setResponse\(([\s\S]+)\)/)[1]);
+        headers = json.table.cols.map(col => col.label);
+        dataRows = json.table.rows.map(row => {
+          const obj = {};
+          row.c.forEach((cell, i) => obj[headers[i]] = cell ? cell.v : '');
+          return obj;
+        });
+        document.getElementById('loading').style.display = 'none';
+        renderTable(dataRows);
+      });
+
+    // ฟังก์ชันแปลงวันที่จาก String เป็น Date เพื่อใช้ในการกรอง
+    function toDate(str) {
+      if (!str) return null;
+      const sep = str.includes('/') ? '/' : '-';
+      const [d, m, y] = str.split(sep).map(n => parseInt(n));
+      const year = y - 543;
+      return new Date(year, m - 1, d);
+    }
+
+    function renderTable(data) {
+      const table = document.getElementById('data-table');
+      if (!data.length) return table.innerHTML = '<p style="text-align:center;">❌ ไม่พบข้อมูล</p>';
+      let html = `<table><thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>`;
+      data.forEach(row => {
+        html += `<tr>${headers.map(h => `<td>${h === headers[0] ? formatDate(row[h]) : row[h] || ''}</td>`).join('')}</tr>`;
+      });
+      html += '</tbody></table>';
+      table.innerHTML = html;
+    }
+
+    function filterData() {
+      const start = new Date(document.getElementById('start-date').value);
+      const end = new Date(document.getElementById('end-date').value);
+      if (!start || !end) return alert('กรุณาเลือกวันที่ทั้งสอง');
+      const filtered = dataRows.filter(r => {
+        const d = toDate(r[headers[0]]);
+        return d && d >= start && d <= end;
+      });
+      renderTable(filtered);
+    }
+
+    function resetFilter() {
+      document.getElementById('start-date').value = '';
+      document.getElementById('end-date').value = '';
+      renderTable(dataRows);
+    }
+  </script>
 </body>
 </html>
