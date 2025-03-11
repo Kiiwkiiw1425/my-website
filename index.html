@@ -11,14 +11,14 @@
         });
         google.charts.setOnLoadCallback(drawTable);
 
- function drawTable() {
-            // ใช้ SELECT * เพื่อดึงข้อมูลจากทุกคอลัมน์
+        function drawTable() {
             var queryString = encodeURIComponent('SELECT *');  // ดึงข้อมูลทั้งหมดจากทุกคอลัมน์
             var query = new google.visualization.Query('https://docs.google.com/spreadsheets/d/1xRqnFHRWL3l_-6-LNJ_LM5Bejiv0aV5JwcV9PtzC-Nk/gviz/tq?sheet=Sheet1&tq=' + queryString);
             
             query.send(function(response) {
                 if (response.isError()) {
                     console.log('Error: ' + response.getMessage() + ' ' + response.getDetailedMessage());
+                    document.getElementById('table_div').innerHTML = 'Failed to load data. Please check the console for errors.';
                     return;
                 }
 
@@ -31,6 +31,6 @@
 </head>
 <body>
     <h1>อัพเดทโปรแกรมประจำวัน</h1>
-    <div id="table_div"></div>
+    <div id="table_div">Loading data...</div>
 </body>
 </html>
