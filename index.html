@@ -37,9 +37,9 @@
 
             if (startDate && endDate) {
                 var filteredData = new google.visualization.DataTable();
-                filteredData.addColumn('string', 'Update Date');
-                filteredData.addColumn('string', 'Post Name');
-                filteredData.addColumn('string', 'Details');
+                filteredData.addColumn('string', 'วันที่อัปเดต');
+                filteredData.addColumn('string', 'ชื่อโพสต์');
+                filteredData.addColumn('string', 'รายละเอียด');
 
                 // แปลงจาก พ.ศ. เป็น ค.ศ.
                 var startYear = parseInt(startDate.split('-')[2]) - 543;
