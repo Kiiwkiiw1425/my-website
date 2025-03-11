@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <title>รายการอัปเดต</title>
+  <title>อัพเดทโปรแกรมประจำวัน</title>
   <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
@@ -145,11 +145,14 @@
     tableDiv.innerHTML = html;
   }
 
-  function convertToDate(thaiDate) {
-    const [day, month, year] = thaiDate.split('-');
-    return new Date(parseInt(year) - 543, parseInt(month) - 1, parseInt(day));
-  }
-
+function convertToDate(thaiDate) {
+  if (!thaiDate) return null;
+  // รองรับทั้ง 10-03-2568 และ 10/03/2568
+  const separator = thaiDate.includes('/') ? '/' : '-';
+  const [day, month, year] = thaiDate.split(separator).map(part => parseInt(part));
+  return new Date(year - 543, month - 1, day);
+}
+  
   function filterData() {
     const start = document.getElementById('start-date').value;
     const end = document.getElementById('end-date').value;
