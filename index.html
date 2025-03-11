@@ -13,15 +13,7 @@
 
         var originalData;
 
-        // ฟังก์ชันเพื่อแปลงจาก พ.ศ. เป็น ค.ศ.
-        function toADDate(dateString) {
-            var dateParts = dateString.split("-");
-            var year = parseInt(dateParts[0]) - 543; // แปลง พ.ศ. เป็น ค.ศ.
-            var month = parseInt(dateParts[1]) - 1; // เดือนใน JS เริ่มต้นที่ 0
-            var day = parseInt(dateParts[2]);
-            return new Date(year, month, day);
-        }
-
+        // ดึงข้อมูลจาก Google Sheets และแสดงตาราง
         function drawTable() {
             var queryString = encodeURIComponent('SELECT * ORDER BY A DESC');  // คอลัมน์ A คือวันที่
             var query = new google.visualization.Query('https://docs.google.com/spreadsheets/d/1xRqnFHRWL3l_-6-LNJ_LM5Bejiv0aV5JwcV9PtzC-Nk/gviz/tq?sheet=Sheet1&tq=' + queryString);
@@ -36,12 +28,56 @@
 
                 var table = new google.visualization.Table(document.getElementById('table_div'));
                 table.draw(originalData, {showRowNumber: false, width: '100%', height: '100%'});
+                
+                // ตั้งค่าฟอร์มวันที่
+                setDateInputs();
             });
         }
 
+        // ดึงข้อมูลวันที่จากตาราง
+        function getTableDates() {
+            var dates = [];
+            var table = document.getElementById('table_div').getElementsByTagName('table')[0];
+            var rows = table.getElementsByTagName('tr');
+
+            // เริ่มที่แถวที่ 1 (เพราะแถวที่ 0 คือ header)
+            for (var i = 1; i < rows.length; i++) {
+                var dateCell = rows[i].getElementsByTagName('td')[0];  // คอลัมน์วันที่ (คอลัมน์ A)
+                if (dateCell) {
+                    var date = dateCell.textContent || dateCell.innerText;
+                    dates.push(date);
+                }
+            }
+            return dates;
+        }
+
+        // ตั้งค่าวันที่ให้กับฟอร์มวันที่เริ่มต้นและสิ้นสุด
+        function setDateInputs() {
+            var dates = getTableDates();
+            if (dates.length > 0) {
+                var firstDate = dates[0];  // ใช้วันที่แรกจากตารางเป็นค่าเริ่มต้น
+                var lastDate = dates[dates.length - 1];  // ใช้วันที่สุดท้ายจากตารางเป็นค่าสิ้นสุด
+
+                document.getElementById('start_date').value = formatDateToInput(firstDate);
+                document.getElementById('end_date').value = formatDateToInput(lastDate);
+            }
+        }
+
+        // แปลงวันที่จาก พ.ศ. เป็น ค.ศ.
+        function formatDateToInput(dateStr) {
+            var monthNames = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+            var dateParts = dateStr.split(" ");
+            var day = dateParts[0];
+            var month = monthNames.indexOf(dateParts[1]) + 1;
+            var year = parseInt(dateParts[2]) - 543;
+
+            return year + "-" + (month < 10 ? "0" + month : month) + "-" + (day < 10 ? "0" + day : day);
+        }
+
+        // ฟังก์ชันกรองข้อมูลตามวันที่
         function filterData() {
-            var startDate = document.getElementById('start_date').value;  // รับวันที่เริ่มต้นจาก input
-            var endDate = document.getElementById('end_date').value;      // รับวันที่สิ้นสุดจาก input
+            var startDate = document.getElementById('start_date').value;
+            var endDate = document.getElementById('end_date').value;
 
             if (startDate && endDate) {
                 var filteredData = new google.visualization.DataTable();
@@ -49,37 +85,34 @@
                 filteredData.addColumn('string', 'ชื่อโพสต์');
                 filteredData.addColumn('string', 'รายละเอียด');
 
-                // แปลงวันที่จาก พ.ศ. เป็น ค.ศ.
-                var startADDate = toADDate(startDate);  // วันที่เริ่มต้น
-                var endADDate = toADDate(endDate);      // วันที่สิ้นสุด
+                var startYear = parseInt(startDate.split('-')[0]);
+                var endYear = parseInt(endDate.split('-')[0]);
 
                 for (var i = 0; i < originalData.getNumberOfRows(); i++) {
-                    var date = originalData.getValue(i, 0);  // คอลัมน์ A: วันที่อัปเดต (กรอกในรูปแบบ yyyy-mm-dd)
+                    var date = originalData.getValue(i, 0);  // คอลัมน์ A: วันที่อัปเดต
+                    var currentDate = new Date(date);
+                    var startDateObj = new Date(startYear, parseInt(startDate.split('-')[1]) - 1, parseInt(startDate.split('-')[2]));
+                    var endDateObj = new Date(endYear, parseInt(endDate.split('-')[1]) - 1, parseInt(endDate.split('-')[2]));
 
-                    // เปรียบเทียบวันที่เริ่มต้นและสิ้นสุด
-                    var currentDate = new Date(date);  // วันที่ใน Google Sheets คือนามธรรมแบบ ค.ศ.
-                    
-                    if (currentDate >= startADDate && currentDate <= endADDate) {
+                    if (currentDate >= startDateObj && currentDate <= endDateObj) {
                         var row = [];
-                        row.push(date);  // วันที่อัปเดต
+                        row.push(date);
                         row.push(originalData.getValue(i, 1));  // ชื่อโพสต์
                         row.push(originalData.getValue(i, 2));  // รายละเอียด
                         filteredData.addRow(row);
                     }
                 }
 
-                // แสดงข้อมูลที่กรองแล้ว
                 var table = new google.visualization.Table(document.getElementById('table_div'));
                 table.draw(filteredData, {showRowNumber: false, width: '100%', height: '100%'});
             }
         }
 
-        // ฟังก์ชันสำหรับล้างค่าการกรองและแสดงข้อมูลเดิม
+        // ฟังก์ชันล้างข้อมูลกรอง
         function clearFilter() {
-            document.getElementById('start_date').value = ''; // ล้างวันที่เริ่มต้น
-            document.getElementById('end_date').value = '';   // ล้างวันที่สิ้นสุด
-            var table = new google.visualization.Table(document.getElementById('table_div'));
-            table.draw(originalData, {showRowNumber: false, width: '100%', height: '100%'});
+            document.getElementById('start_date').value = "";
+            document.getElementById('end_date').value = "";
+            drawTable();  // เรียกฟังก์ชันดึงข้อมูลทั้งหมดและแสดงใหม่
         }
     </script>
 </head>
@@ -93,7 +126,7 @@
         <label for="end_date">สิ้นสุดวันที่:</label>
         <input type="date" id="end_date" required>
         <button onclick="filterData()">ค้นหา</button>
-        <button onclick="clearFilter()">ล้างค่า</button>
+        <button onclick="clearFilter()">ล้างข้อมูล</button>
         <br>
     </div>
     <br>
