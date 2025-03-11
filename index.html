@@ -12,10 +12,10 @@
         google.charts.setOnLoadCallback(drawTable);
 
         function drawTable() {
-            // ใช้ SELECT * เพื่อดึงข้อมูลจากทุกคอลัมน์
-            var queryString = encodeURIComponent('SELECT *');  // ดึงข้อมูลทั้งหมดจากทุกคอลัมน์
+            // ใช้ SELECT * เพื่อดึงข้อมูลจากทุกคอลัมน์ และจัดเรียงตาม Update Date
+            var queryString = encodeURIComponent('SELECT * ORDER BY A DESC');  // คอลัมน์ A คือวันที่อัปเดต
             var query = new google.visualization.Query('https://docs.google.com/spreadsheets/d/1xRqnFHRWL3l_-6-LNJ_LM5Bejiv0aV5JwcV9PtzC-Nk/gviz/tq?sheet=Sheet1&tq=' + queryString);
-            
+
             query.send(function(response) {
                 if (response.isError()) {
                     console.log('Error: ' + response.getMessage() + ' ' + response.getDetailedMessage());
