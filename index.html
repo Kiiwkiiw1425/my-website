@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>รายการอัปเดต</title>
+  <title>อัพเดทโปรแกรมประจำวัน</title>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -60,7 +60,7 @@
   </style>
 </head>
 <body>
-  <h2>📋 รายการอัปเดต</h2>
+  <h2>📋 อัพเดทโปรแกรมประจำวัน</h2>
   <div class="controls">
     <input type="date" id="start-date">
     <input type="date" id="end-date">
@@ -118,13 +118,20 @@
     }
 
     function filterData() {
-      const start = new Date(document.getElementById('start-date').value);
-      const end = new Date(document.getElementById('end-date').value);
-      if (!start || !end) return alert('กรุณาเลือกวันที่ทั้งสอง');
+      const startDate = document.getElementById('start-date').value;
+      const endDate = document.getElementById('end-date').value;
+
+      // ตรวจสอบว่าเลือกวันที่ครบแล้วหรือไม่
+      if (!startDate || !endDate) return alert('กรุณาเลือกวันที่ทั้งสอง');
+      
+      const start = toDate(startDate);
+      const end = toDate(endDate);
+      
       const filtered = dataRows.filter(r => {
-        const d = toDate(r[headers[0]]);
-        return d && d >= start && d <= end;
+        const rowDate = toDate(r[headers[0]]);
+        return rowDate && rowDate >= start && rowDate <= end;
       });
+      
       renderTable(filtered);
     }
 
