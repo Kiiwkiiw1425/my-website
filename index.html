@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Landing Page Updates</title>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+        google.charts.load('current', {
+            packages: ['table']
+        });
+        google.charts.setOnLoadCallback(drawTable);
+
+        function drawTable() {
+            var queryString = encodeURIComponent('SELECT A, B, C, D');  // Select columns A, B, C, D from your Google Sheets
+            var query = new google.visualization.Query('https://docs.google.com/spreadsheets/d/1xRqnFHRWL3l_-6-LNJ_LM5Bejiv0aV5JwcV9PtzC-Nk/gviz/tq?sheet=Sheet1&tq=' + queryString);
+            query.send(function(response) {
+                var data = response.getDataTable();
+                var table = new google.visualization.Table(document.getElementById('table_div'));
+                table.draw(data, {showRowNumber: false, width: '100%', height: '100%'});
+            });
+        }
+    </script>
+</head>
+<body>
+    <h1>Latest Updates</h1>
+    <div id="table_div"></div>
+</body>
+</html>
