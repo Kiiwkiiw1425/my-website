@@ -37,21 +37,21 @@
 
             if (startDate && endDate) {
                 var filteredData = new google.visualization.DataTable();
-                filteredData.addColumn('string', 'วันที่อัปเดต');
-                filteredData.addColumn('string', 'ชื่อโพสต์');
-                filteredData.addColumn('string', 'รายละเอียด');
+                filteredData.addColumn('string', 'Update Date');
+                filteredData.addColumn('string', 'Post Name');
+                filteredData.addColumn('string', 'Details');
 
                 // แปลงจาก พ.ศ. เป็น ค.ศ.
-                var startYear = parseInt(startDate.split('-')[2]) - 543;
-                var endYear = parseInt(endDate.split('-')[2]) - 543;
+                var startYear = parseInt(startDate.split('-')[0]) - 543;
+                var endYear = parseInt(endDate.split('-')[0]) - 543;
 
                 for (var i = 0; i < originalData.getNumberOfRows(); i++) {
                     var date = originalData.getValue(i, 0);  // คอลัมน์ A: วันที่อัปเดต (กรอกในรูปแบบ yyyy-mm-dd)
 
                     // เปรียบเทียบวันที่เริ่มต้นและสิ้นสุด
                     var currentDate = new Date(date);
-                    var startDateObj = new Date(startYear, parseInt(startDate.split('-')[1]) - 1, parseInt(startDate.split('-')[0]));
-                    var endDateObj = new Date(endYear, parseInt(endDate.split('-')[1]) - 1, parseInt(endDate.split('-')[0]));
+                    var startDateObj = new Date(startYear, parseInt(startDate.split('-')[1]) - 1, parseInt(startDate.split('-')[2]));
+                    var endDateObj = new Date(endYear, parseInt(endDate.split('-')[1]) - 1, parseInt(endDate.split('-')[2]));
 
                     if (currentDate >= startDateObj && currentDate <= endDateObj) {
                         var row = [];
@@ -73,11 +73,12 @@
     <h1>อัพเดทโปรแกรมประจำวัน</h1>
 
     <!-- ฟอร์มสำหรับกรอกช่วงวันที่ -->
+    <br>
     <div>
-        <label for="start_date">เริ่มต้นวันที่ (dd-mm-yyyy):</label>
-        <input type="text" id="start_date" placeholder="10-03-2568" required>
-        <label for="end_date">สิ้นสุดวันที่ (dd-mm-yyyy):</label>
-        <input type="text" id="end_date" placeholder="11-03-2568" required>
+        <label for="start_date">เริ่มต้นวันที่:</label>
+        <input type="date" id="start_date" required>
+        <label for="end_date">สิ้นสุดวันที่:</label>
+        <input type="date" id="end_date" required>
         <button onclick="filterData()">กรองข้อมูล</button>
     </div>
 
