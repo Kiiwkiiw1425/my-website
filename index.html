@@ -13,8 +13,16 @@
 
         var originalData;
 
+        // ฟังก์ชันเพื่อแปลงจาก พ.ศ. เป็น ค.ศ.
+        function toADDate(dateString) {
+            var dateParts = dateString.split("-");
+            var year = parseInt(dateParts[0]) - 543; // แปลง พ.ศ. เป็น ค.ศ.
+            var month = parseInt(dateParts[1]) - 1; // เดือนใน JS เริ่มต้นที่ 0
+            var day = parseInt(dateParts[2]);
+            return new Date(year, month, day);
+        }
+
         function drawTable() {
-            // ดึงข้อมูลจาก Google Sheets โดยใช้ Query ที่จัดเรียงตามคอลัมน์ A (วันที่)
             var queryString = encodeURIComponent('SELECT * ORDER BY A DESC');  // คอลัมน์ A คือวันที่
             var query = new google.visualization.Query('https://docs.google.com/spreadsheets/d/1xRqnFHRWL3l_-6-LNJ_LM5Bejiv0aV5JwcV9PtzC-Nk/gviz/tq?sheet=Sheet1&tq=' + queryString);
 
@@ -41,19 +49,17 @@
                 filteredData.addColumn('string', 'ชื่อโพสต์');
                 filteredData.addColumn('string', 'รายละเอียด');
 
-                // แปลงจาก พ.ศ. เป็น ค.ศ.
-                var startYear = parseInt(startDate.split('-')[0]) - 543;
-                var endYear = parseInt(endDate.split('-')[0]) - 543;
+                // แปลงวันที่จาก พ.ศ. เป็น ค.ศ.
+                var startADDate = toADDate(startDate);  // วันที่เริ่มต้น
+                var endADDate = toADDate(endDate);      // วันที่สิ้นสุด
 
                 for (var i = 0; i < originalData.getNumberOfRows(); i++) {
                     var date = originalData.getValue(i, 0);  // คอลัมน์ A: วันที่อัปเดต (กรอกในรูปแบบ yyyy-mm-dd)
 
                     // เปรียบเทียบวันที่เริ่มต้นและสิ้นสุด
-                    var currentDate = new Date(date);
-                    var startDateObj = new Date(startYear, parseInt(startDate.split('-')[1]) - 1, parseInt(startDate.split('-')[2]));
-                    var endDateObj = new Date(endYear, parseInt(endDate.split('-')[1]) - 1, parseInt(endDate.split('-')[2]));
-
-                    if (currentDate >= startDateObj && currentDate <= endDateObj) {
+                    var currentDate = new Date(date);  // วันที่ใน Google Sheets คือนามธรรมแบบ ค.ศ.
+                    
+                    if (currentDate >= startADDate && currentDate <= endADDate) {
                         var row = [];
                         row.push(date);  // วันที่อัปเดต
                         row.push(originalData.getValue(i, 1));  // ชื่อโพสต์
@@ -86,7 +92,7 @@
         <input type="date" id="start_date" required>
         <label for="end_date">สิ้นสุดวันที่:</label>
         <input type="date" id="end_date" required>
-        <button onclick="filterData()">กรองข้อมูล</button>
+        <button onclick="filterData()">ค้นหา</button>
         <button onclick="clearFilter()">ล้างค่า</button>
         <br>
     </div>
