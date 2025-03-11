@@ -11,6 +11,8 @@
         });
         google.charts.setOnLoadCallback(drawTable);
 
+        var originalData;
+
         function drawTable() {
             // ดึงข้อมูลจาก Google Sheets โดยใช้ Query ที่จัดเรียงตามคอลัมน์ A (วันที่)
             var queryString = encodeURIComponent('SELECT * ORDER BY A DESC');  // คอลัมน์ A คือวันที่
@@ -22,34 +24,64 @@
                     return;
                 }
 
-                var data = response.getDataTable();
-                
-                // ตัวอย่างการกรองข้อมูล: กรองวันที่ที่ตรงกับเดือนมีนาคม 2025
-                var filterDate = '2025-03';  // คุณสามารถเปลี่ยนค่าตรงนี้ให้กรองตามที่ต้องการ
-                var filteredData = new google.visualization.DataTable();
-                filteredData.addColumn('string', 'Ticket ID');
-                filteredData.addColumn('string', 'Bug/Feature Description');
-                filteredData.addColumn('string', 'Update Date');
+                originalData = response.getDataTable(); // บันทึกข้อมูลดั้งเดิม
 
-                for (var i = 0; i < data.getNumberOfRows(); i++) {
-                    var date = data.getValue(i, 2);  // คอลัมน์ที่ 3 (คอลัมน์วันที่)
-                    if (date.startsWith(filterDate)) {
+                var table = new google.visualization.Table(document.getElementById('table_div'));
+                table.draw(originalData, {showRowNumber: false, width: '100%', height: '100%'});
+            });
+        }
+
+        function filterData() {
+            var startDate = document.getElementById('start_date').value;  // รับวันที่เริ่มต้นจาก input
+            var endDate = document.getElementById('end_date').value;      // รับวันที่สิ้นสุดจาก input
+
+            if (startDate && endDate) {
+                var filteredData = new google.visualization.DataTable();
+                filteredData.addColumn('string', 'Update Date');
+                filteredData.addColumn('string', 'Post Name');
+                filteredData.addColumn('string', 'Details');
+
+                // แปลงจาก พ.ศ. เป็น ค.ศ.
+                var startYear = parseInt(startDate.split('-')[2]) - 543;
+                var endYear = parseInt(endDate.split('-')[2]) - 543;
+
+                for (var i = 0; i < originalData.getNumberOfRows(); i++) {
+                    var date = originalData.getValue(i, 0);  // คอลัมน์ A: วันที่อัปเดต (กรอกในรูปแบบ yyyy-mm-dd)
+
+                    // เปรียบเทียบวันที่เริ่มต้นและสิ้นสุด
+                    var currentDate = new Date(date);
+                    var startDateObj = new Date(startYear, parseInt(startDate.split('-')[1]) - 1, parseInt(startDate.split('-')[0]));
+                    var endDateObj = new Date(endYear, parseInt(endDate.split('-')[1]) - 1, parseInt(endDate.split('-')[0]));
+
+                    if (currentDate >= startDateObj && currentDate <= endDateObj) {
                         var row = [];
-                        row.push(data.getValue(i, 0));  // Ticket ID
-                        row.push(data.getValue(i, 1));  // Bug/Feature Description
                         row.push(date);  // วันที่อัปเดต
+                        row.push(originalData.getValue(i, 1));  // ชื่อโพสต์
+                        row.push(originalData.getValue(i, 2));  // รายละเอียด
                         filteredData.addRow(row);
                     }
                 }
 
+                // แสดงข้อมูลที่กรองแล้ว
                 var table = new google.visualization.Table(document.getElementById('table_div'));
                 table.draw(filteredData, {showRowNumber: false, width: '100%', height: '100%'});
-            });
+            }
         }
     </script>
 </head>
 <body>
     <h1>อัพเดทโปรแกรมประจำวัน</h1>
+
+    <!-- ฟอร์มสำหรับกรอกช่วงวันที่ -->
+    <div>
+        <label for="start_date">เริ่มต้นวันที่ (dd-mm-yyyy):</label>
+        <input type="text" id="start_date" placeholder="10-03-2568" required>
+        <label for="end_date">สิ้นสุดวันที่ (dd-mm-yyyy):</label>
+        <input type="text" id="end_date" placeholder="11-03-2568" required>
+        <button onclick="filterData()">กรองข้อมูล</button>
+    </div>
+
+    <!-- ตารางแสดงข้อมูล -->
     <div id="table_div"></div>
 </body>
 </html>
