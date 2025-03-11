@@ -67,19 +67,27 @@
                 table.draw(filteredData, {showRowNumber: false, width: '100%', height: '100%'});
             }
         }
+
+        // ฟังก์ชันสำหรับล้างค่าการกรองและแสดงข้อมูลเดิม
+        function clearFilter() {
+            document.getElementById('start_date').value = ''; // ล้างวันที่เริ่มต้น
+            document.getElementById('end_date').value = '';   // ล้างวันที่สิ้นสุด
+            var table = new google.visualization.Table(document.getElementById('table_div'));
+            table.draw(originalData, {showRowNumber: false, width: '100%', height: '100%'});
+        }
     </script>
 </head>
 <body>
     <h1>อัพเดทโปรแกรมประจำวัน</h1>
 
     <!-- ฟอร์มสำหรับกรอกช่วงวันที่ -->
-
     <div>
         <label for="start_date">เริ่มต้นวันที่:</label>
         <input type="date" id="start_date" required>
         <label for="end_date">สิ้นสุดวันที่:</label>
         <input type="date" id="end_date" required>
         <button onclick="filterData()">กรองข้อมูล</button>
+        <button onclick="clearFilter()">ล้างค่า</button>
         <br>
     </div>
     <br>
