@@ -1,145 +1,128 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>อัพเดทโปรแกรมประจำวัน</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
+      font-family: 'Segoe UI', sans-serif;
+      padding: 1rem;
       max-width: 800px;
       margin: auto;
+      background: #f9f9f9;
     }
-    h2 {
-      text-align: center;
-    }
-    .filter-container {
+    h2 { text-align: center; color: #333; }
+    .controls {
       display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin-bottom: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin: 1rem 0;
     }
-    .filter-container input {
-      margin: 5px;
-      padding: 10px;
-      font-size: 16px;
+    input[type="date"], button {
+      padding: 0.5rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 8px;
     }
-    .filter-container button {
-      margin: 5px;
-      padding: 10px 20px;
-      font-size: 16px;
+    button {
+      background: #007bff;
+      color: white;
       cursor: pointer;
     }
+    button:hover { background: #0056b3; }
     .table-container {
       overflow-x: auto;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 10px;
+      min-width: 500px;
     }
     th, td {
-      border: 1px solid #ddd;
-      padding: 8px;
+      padding: 10px;
       text-align: left;
+      border-bottom: 1px solid #eee;
     }
     th {
-      background-color: #f2f2f2;
+      background-color: #f1f1f1;
+      color: #444;
     }
-    @media (max-width: 600px) {
-      .filter-container {
-        width: 100%;
-      }
-      .filter-container input, .filter-container button {
-        width: 100%;
-        box-sizing: border-box;
-      }
+    #loading {
+      text-align: center;
+      color: #777;
+      padding: 1rem;
     }
   </style>
 </head>
 <body>
-  <h2>อัพเดทโปรแกรมประจำวัน</h2>
-
-  <div class="filter-container">
-    <label for="start-date">ตั้งแต่วันที่:</label>
+  <h2>📋 อัพเดทโปรแกรมประจำวัน</h2>
+  <div class="controls">
     <input type="date" id="start-date">
-    <label for="end-date">ถึงวันที่:</label>
     <input type="date" id="end-date">
-    <button onclick="filterData()">กรองข้อมูล</button>
-    <button onclick="resetFilter()">ล้างค่า</button>
+    <button onclick="filterData()">กรอง</button>
+    <button onclick="resetFilter()">ล้าง</button>
   </div>
-
-  <div id="loading">กำลังโหลดข้อมูล...</div>
+  <div id="loading">🔄 กำลังโหลดข้อมูล...</div>
   <div id="data-table" class="table-container"></div>
+  
 
   <script>
     const sheetURL = 'https://docs.google.com/spreadsheets/d/1xRqnFHRWL3l_-6-LNJ_LM5Bejiv0aV5JwcV9PtzC-Nk/gviz/tq?sheet=Sheet1';
-    let originalData = [];
-    let columnHeaders = [];
+    let dataRows = [], headers = [];
 
-    // โหลดข้อมูลจาก Google Sheets
-    function loadData() {
-      fetch(sheetURL)
-        .then(res => res.text())
-        .then(dataText => {
-          const json = JSON.parse(dataText.match(/google\.visualization\.Query\.setResponse\(([\s\S\w]+)\)/)[1]);
-          columnHeaders = json.table.cols.map(col => col.label);
-          originalData = json.table.rows.map(row => {
-            const rowData = {};
-            row.c.forEach((cell, i) => {
-              rowData[columnHeaders[i]] = cell ? (cell.v instanceof Date ? cell.v : String(cell.v).trim()) : '';
-            });
-            return rowData;
-          });
-          document.getElementById('loading').style.display = 'none'; // ซ่อนข้อความโหลด
-          displayData(originalData);
+    fetch(sheetURL)
+      .then(res => res.text())
+      .then(text => {
+        const json = JSON.parse(text.match(/google\.visualization\.Query\.setResponse\(([\s\S]+)\)/)[1]);
+        headers = json.table.cols.map(col => col.label);
+        dataRows = json.table.rows.map(row => {
+          const obj = {};
+          row.c.forEach((cell, i) => obj[headers[i]] = cell ? cell.v : '');
+          return obj;
         });
-    }
-
-    // แสดงข้อมูลในตาราง
-    function displayData(data) {
-      const tableDiv = document.getElementById('data-table');
-      if (data.length === 0) {
-        tableDiv.innerHTML = '<p>ไม่พบข้อมูล</p>';
-        return;
-      }
-      let html = '<table><thead><tr>';
-      columnHeaders.forEach(header => {
-        html += `<th>${header}</th>`;
+        document.getElementById('loading').style.display = 'none';
+        renderTable(dataRows);
       });
-      html += '</tr></thead><tbody>';
+
+    function renderTable(data) {
+      const table = document.getElementById('data-table');
+      if (!data.length) return table.innerHTML = '<p style="text-align:center;">❌ ไม่พบข้อมูล</p>';
+      let html = `<table><thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>`;
       data.forEach(row => {
-        html += '<tr>';
-        columnHeaders.forEach(header => {
-          html += `<td>${row[header]}</td>`;
-        });
-        html += '</tr>';
+        html += '<tr>' + headers.map(h => `<td>${row[h] || ''}</td>`).join('') + '</tr>';
       });
       html += '</tbody></table>';
-      tableDiv.innerHTML = html;
+      table.innerHTML = html;
     }
 
-    // แปลงวันที่ในรูปแบบ "10-03-2568" หรือ "10/03/2568" เป็น Date object
-    function convertToDate(thaiDate) {
-      if (!thaiDate) return null;
-      const separator = thaiDate.includes('/') ? '/' : '-';
-      const [day, month, year] = thaiDate.split(separator).map(part => parseInt(part, 10));
-      return new Date(year - 543, month - 1, day);
+    function toDate(str) {
+      if (!str) return null;
+      const sep = str.includes('/') ? '/' : '-';
+      const [d, m, y] = str.split(sep).map(n => parseInt(n));
+      return new Date(y - 543, m - 1, d);
     }
 
-    // ฟิลเตอร์ข้อมูลตามช่วงวันที่
     function filterData() {
-      const start = document.getElementById('start-date').value;
-      const end = document.getElementById('end-date').value;
-      if (!start || !end) {
-        alert('กรุณาเลือกวันที่เริ่มและสิ้นสุด');
-        return;
-      }
-      const startDate = new Date(start);
-      const endDate = new Date(end);
-      const filtered = originalData.filter(row => {
-        const rowDate = convertToDate(row[columnHeaders[0]]);
-        return rowDate >= startDate && rowDate
-::contentReference[oaicite:0]{index=0}
- 
+      const start = new Date(document.getElementById('start-date').value);
+      const end = new Date(document.getElementById('end-date').value);
+      if (!start || !end) return alert('กรุณาเลือกวันที่ทั้งสอง');
+      const filtered = dataRows.filter(r => {
+        const d = toDate(r[headers[0]]);
+        return d && d >= start && d <= end;
+      });
+      renderTable(filtered);
+    }
+
+    function resetFilter() {
+      document.getElementById('start-date').value = '';
+      document.getElementById('end-date').value = '';
+      renderTable(dataRows);
+    }
+  </script>
+</body>
+</html>
