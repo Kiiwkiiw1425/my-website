@@ -2,13 +2,14 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>📢 อัปเดตระบบ DPIS</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    /* CSS for enabling resizable columns */
     .resizable {
       position: relative;
       user-select: none;
+      overflow: hidden;
     }
 
     .resizable .resizer {
@@ -19,6 +20,10 @@
       height: 100%;
       cursor: ew-resize;
       background-color: #ddd;
+    }
+
+    th, td {
+      white-space: nowrap;
     }
   </style>
 </head>
@@ -63,13 +68,16 @@
       </div>
     </div>
 
+    <!-- Loading Message -->
+    <div id="loadingMessage" class="text-center text-gray-500 mb-4">กำลังโหลดข้อมูล...</div>
+
     <!-- Posts Section (Table Display) -->
     <div id="posts" class="overflow-x-auto">
       <table class="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
         <thead>
           <tr>
-            <th class="resizable px-6 py-3 text-left text-sm font-medium text-gray-700 bg-gray-100"style="width:130px;">วันที่</th>
-            <th class="resizable px-6 py-3 text-left text-sm font-medium text-gray-700 bg-gray-100"style="width:295px;">หัวข้อ</th>
+            <th class="resizable px-6 py-3 text-left text-sm font-medium text-gray-700 bg-gray-100" style="width:130px;">วันที่</th>
+            <th class="resizable px-6 py-3 text-left text-sm font-medium text-gray-700 bg-gray-100" style="width:295px;">หัวข้อ</th>
             <th class="resizable px-6 py-3 text-left text-sm font-medium text-gray-700 bg-gray-100">รายละเอียด</th>
           </tr>
         </thead>
@@ -81,7 +89,7 @@
   </div>
 
   <script>
-    // Add resizer functionality
+    // Resizable Columns
     document.querySelectorAll('.resizable').forEach(th => {
       const resizer = document.createElement('div');
       resizer.classList.add('resizer');
@@ -130,7 +138,8 @@
 
     function extractMonth(dateStr) {
       const date = parseThaiDate(dateStr);
-      return `${date.getFullYear()}-${date.getMonth() + 1}`; // "2025-3"
+      if (isNaN(date)) return "";
+      return `${date.getFullYear()}-${date.getMonth() + 1}`;
     }
 
     function applyFilters() {
@@ -168,7 +177,10 @@
 
     function renderPosts(data) {
       const tableBody = document.getElementById("postsTableBody");
-      tableBody.innerHTML = data.length === 0 ? "<tr><td colspan='3' class='px-6 py-3 text-center text-sm text-gray-500'>ไม่พบข้อมูล</td></tr>" : "";
+      tableBody.innerHTML = data.length === 0
+        ? "<tr><td colspan='3' class='px-6 py-3 text-center text-sm text-gray-500'>ไม่พบข้อมูล</td></tr>"
+        : "";
+
       data.forEach(post => {
         const tr = document.createElement("tr");
         tr.className = "border-b border-gray-200 hover:bg-gray-50";
@@ -182,7 +194,7 @@
     }
 
     function fillDropdowns() {
-      const months = [...new Set(allPosts.map(p => p.month))].sort().reverse();
+      const months = [...new Set(allPosts.map(p => p.month))].filter(Boolean).sort().reverse();
       const monthSelect = document.getElementById("monthFilter");
       months.forEach(m => {
         const [y, mo] = m.split('-');
@@ -196,12 +208,11 @@
         catSelect.innerHTML += `<option value="${c}">${c}</option>`;
       });
     }
-      fetch(sheetURL)
-        .then(res => res.text())
-        .then(text => {
-          // Hide loading message when data is loaded
-          document.getElementById("loadingMessage").style.display = "none";
-        
+
+    // Load Data
+    fetch(sheetURL)
+      .then(res => res.text())
+      .then(text => {
         const json = JSON.parse(text.substr(47).slice(0, -2));
         const rows = json.table.rows;
 
@@ -223,11 +234,9 @@
         allPosts.sort((a, b) => b.sortDate - a.sortDate);
         fillDropdowns();
         renderPosts(allPosts);
+        document.getElementById("loadingMessage").style.display = "none";
       });
 
-    // Show loading message
-    document.getElementById("loadingMessage").style.display = "block";
-    
     document.getElementById("searchInput").addEventListener("keypress", e => {
       if (e.key === "Enter") applyFilters();
     });
