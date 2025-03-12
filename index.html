@@ -2,26 +2,15 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <title>📢 อัพเดตโปรแกรมประจำวัน</title>
+  <title>📢 อัปเดตโปรแกรมประจำวัน</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/docxtemplater/3.21.2/docxtemplater.js"></script>
 </head>
 <body class="bg-gray-50 text-gray-800 p-4">
 
   <div class="max-w-4xl mx-auto">
     <h2 class="text-2xl font-bold mb-4">📢 อัปเดตโปรแกรมประจำวัน</h2>
-
-    <!-- Sorting Options -->
-    <div class="flex gap-4 mb-4">
-      <div>
-        <label class="text-sm">เรียงลำดับ</label>
-        <select id="sortOrder" class="border px-2 py-1 rounded">
-          <option value="desc">ล่าสุดอยู่บน</option>
-          <option value="asc">เก่าสุดอยู่บน</option>
-        </select>
-      </div>
-    </div>
 
     <!-- Filters -->
     <div class="grid md:grid-cols-4 sm:grid-cols-2 gap-4 mb-6">
@@ -43,24 +32,38 @@
       </div>
     </div>
 
-    <!-- Pagination -->
-    <div id="pagination" class="mb-4"></div>
+    <!-- Sorting -->
+    <div class="flex items-center mb-6">
+      <label class="text-sm mr-4">การจัดเรียง:</label>
+      <select id="sortOrder" onchange="applyFilters()" class="border px-2 py-1 rounded">
+        <option value="desc">ล่าสุดอยู่บนสุด</option>
+        <option value="asc">เก่าสุดอยู่บนสุด</option>
+      </select>
+    </div>
+
+    <!-- Month/Category Filters -->
+    <div class="flex flex-wrap gap-2 mb-6">
+      <select id="monthFilter" class="border px-2 py-1 rounded" onchange="applyFilters()">
+        <option value="">ทุกเดือน</option>
+      </select>
+      <select id="categoryFilter" class="border px-2 py-1 rounded" onchange="applyFilters()">
+        <option value="">ทุกหมวดหมู่</option>
+      </select>
+    </div>
+
+    <!-- Export Buttons -->
+    <div class="mb-6">
+      <button onclick="exportPDF()" class="bg-green-500 text-white px-3 py-1 rounded mr-2">Export PDF</button>
+      <button onclick="exportWord()" class="bg-yellow-500 text-white px-3 py-1 rounded">Export Word</button>
+    </div>
 
     <!-- Posts -->
     <div id="posts"></div>
-
-    <!-- Export Buttons -->
-    <div class="mt-4">
-      <button onclick="exportToPDF()" class="bg-green-500 text-white px-4 py-2 rounded mr-4">Export PDF</button>
-      <button onclick="exportToWord()" class="bg-blue-500 text-white px-4 py-2 rounded">Export Word</button>
-    </div>
   </div>
 
   <script>
     const sheetURL = "https://docs.google.com/spreadsheets/d/1xRqnFHRWL3l_-6-LNJ_LM5Bejiv0aV5JwcV9PtzC-Nk/gviz/tq?tqx=out:json";
     let allPosts = [];
-    let currentPage = 1;
-    const postsPerPage = 5;
 
     const monthNames = ["", "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
 
@@ -90,9 +93,11 @@
       const search = document.getElementById("searchInput").value.toLowerCase();
       const start = document.getElementById("startDate").value;
       const end = document.getElementById("endDate").value;
+      const monthVal = document.getElementById("monthFilter").value;
+      const catVal = document.getElementById("categoryFilter").value;
       const sortOrder = document.getElementById("sortOrder").value;
 
-      let filtered = allPosts.filter(post => {
+      const filtered = allPosts.filter(post => {
         const postDate = parseThaiDate(post.date);
         const content = `${post.title} ${post.detail}`.toLowerCase();
 
@@ -100,27 +105,36 @@
         if (search && !content.includes(search)) match = false;
         if (start && postDate < new Date(start)) match = false;
         if (end && postDate > new Date(end)) match = false;
+        if (monthVal && post.month !== monthVal) match = false;
+        if (catVal && post.category !== catVal) match = false;
 
         return match;
       });
 
-      if (sortOrder === "asc") {
-        filtered = filtered.sort((a, b) => a.sortDate - b.sortDate);
-      } else {
-        filtered = filtered.sort((a, b) => b.sortDate - a.sortDate);
-      }
+      // Sorting
+      filtered.sort((a, b) => {
+        return sortOrder === "desc" 
+          ? b.sortDate - a.sortDate // ล่าสุดอยู่บนสุด
+          : a.sortDate - b.sortDate; // เก่าสุดอยู่บนสุด
+      });
 
       renderPosts(filtered);
     }
 
-    function renderPosts(data) {
-      const start = (currentPage - 1) * postsPerPage;
-      const end = currentPage * postsPerPage;
-      const pagePosts = data.slice(start, end);
+    function resetFilters() {
+      document.getElementById("searchInput").value = "";
+      document.getElementById("startDate").value = "";
+      document.getElementById("endDate").value = "";
+      document.getElementById("monthFilter").value = "";
+      document.getElementById("categoryFilter").value = "";
+      document.getElementById("sortOrder").value = "desc";
+      renderPosts(allPosts);
+    }
 
+    function renderPosts(data) {
       const container = document.getElementById("posts");
-      container.innerHTML = pagePosts.length === 0 ? "<p>ไม่พบข้อมูล</p>" : "";
-      pagePosts.forEach(post => {
+      container.innerHTML = data.length === 0 ? "<p>ไม่พบข้อมูล</p>" : "";
+      data.forEach(post => {
         const div = document.createElement("div");
         div.className = "bg-white border shadow-sm p-4 mb-4 rounded";
         div.innerHTML = `
@@ -130,78 +144,70 @@
         `;
         container.appendChild(div);
       });
-
-      renderPagination(data);
     }
 
-    function renderPagination(data) {
-      const totalPages = Math.ceil(data.length / postsPerPage);
-      const pagination = document.getElementById("pagination");
-      pagination.innerHTML = "";
+    function fillDropdowns() {
+      const months = [...new Set(allPosts.map(p => p.month))].sort().reverse();
+      const monthSelect = document.getElementById("monthFilter");
+      months.forEach(m => {
+        const [y, mo] = m.split('-');
+        const label = `${monthNames[parseInt(mo)]} ${parseInt(y) + 543}`;
+        monthSelect.innerHTML += `<option value="${m}">${label}</option>`;
+      });
 
-      for (let i = 1; i <= totalPages; i++) {
-        const btn = document.createElement("button");
-        btn.className = `px-3 py-1 rounded ${i === currentPage ? "bg-blue-500 text-white" : "bg-gray-300"}`;
-        btn.innerText = i;
-        btn.onclick = () => {
-          currentPage = i;
-          renderPosts(data);
-        };
-        pagination.appendChild(btn);
-      }
+      const categories = [...new Set(allPosts.map(p => p.category))].filter(c => c);
+      const catSelect = document.getElementById("categoryFilter");
+      categories.forEach(c => {
+        catSelect.innerHTML += `<option value="${c}">${c}</option>`;
+      });
     }
 
-    function exportToPDF() {
+    function exportPDF() {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
-      const postsHTML = allPosts.map(post => `
-        <h2>${post.title}</h2>
-        <p>${post.detail}</p>
-      `).join("\n");
-
-      doc.text(postsHTML, 10, 10);
-      doc.save("posts.pdf");
+      doc.text("อัปเดตโปรแกรมประจำวัน", 20, 20);
+      const posts = document.getElementById('posts').innerText;
+      doc.text(posts, 20, 30);
+      doc.save('update_report.pdf');
     }
 
-    function exportToWord() {
-      const postsHTML = allPosts.map(post => `
-        <h2>${post.title}</h2>
-        <p>${post.detail}</p>
-      `).join("\n");
-
-      const blob = new Blob([postsHTML], { type: "application/msword" });
-      saveAs(blob, "posts.doc");
+    function exportWord() {
+      const doc = new Docxtemplater();
+      doc.setData({ posts: document.getElementById('posts').innerText });
+      doc.render();
+      const out = doc.getZip().generate({ type: "blob" });
+      saveAs(out, "update_report.docx");
     }
 
-    function fetchData() {
-      fetch(sheetURL)
-        .then(res => res.text())
-        .then(text => {
-          const json = JSON.parse(text.substr(47).slice(0, -2));
-          const rows = json.table.rows;
+    fetch(sheetURL)
+      .then(res => res.text())
+      .then(text => {
+        const json = JSON.parse(text.substr(47).slice(0, -2));
+        const rows = json.table.rows;
 
-          allPosts = rows.map(row => {
-            const rawDate = row.c[0]?.f || row.c[0]?.v || '';
-            const title = row.c[1]?.v || '';
-            const detail = row.c[2]?.v || '';
-            const category = row.c[3]?.v || '';
-            return {
-              date: rawDate,
-              title,
-              detail,
-              category,
-              month: extractMonth(rawDate),
-              sortDate: parseThaiDate(rawDate)
-            };
-          });
-
-          allPosts.sort((a, b) => b.sortDate - a.sortDate);
-          applyFilters();
+        allPosts = rows.map(row => {
+          const rawDate = row.c[0]?.f || row.c[0]?.v || '';
+          const title = row.c[1]?.v || '';
+          const detail = row.c[2]?.v || '';
+          const category = row.c[3]?.v || '';
+          return {
+            date: rawDate,
+            title,
+            detail,
+            category,
+            month: extractMonth(rawDate),
+            sortDate: parseThaiDate(rawDate)
+          };
         });
-    }
 
-    fetchData();
+        allPosts.sort((a, b) => b.sortDate - a.sortDate); // เริ่มต้นล่าสุด
+        fillDropdowns();
+        renderPosts(allPosts);
+      });
+
+    document.getElementById("searchInput").addEventListener("keypress", e => {
+      if (e.key === "Enter") applyFilters();
+    });
   </script>
-
 </body>
 </html>
