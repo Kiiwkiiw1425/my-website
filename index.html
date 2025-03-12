@@ -1,148 +1,50 @@
 <!DOCTYPE html>
-<html lang="th">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>อัพเดทโปรแกรมประจำวัน</title>
+  <meta charset="UTF-8">
+  <title>อัปเดตโปรแกรมประจำวัน</title>
   <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      padding: 1rem;
-      max-width: 800px;
-      margin: auto;
-      background: #f9f9f9;
-    }
-    h2 { text-align: center; color: #333; }
-    .controls {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 10px;
-      margin: 1rem 0;
-    }
-    input[type="date"], button {
-      padding: 0.5rem;
-      font-size: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-    }
-    button {
-      background: #007bff;
-      color: white;
-      cursor: pointer;
-    }
-    button:hover { background: #0056b3; }
-    .table-container {
-      overflow-x: auto;
-      background: white;
-      border-radius: 10px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 500px;
-    }
-    th, td {
-      padding: 10px;
-      text-align: left;
-      border-bottom: 1px solid #eee;
-    }
-    th {
-      background-color: #f1f1f1;
-      color: #444;
-    }
-    #loading {
-      text-align: center;
-      color: #777;
-      padding: 1rem;
-    }
+    body { font-family: sans-serif; padding: 1rem; max-width: 600px; margin: auto; }
+    .card { border: 1px solid #ddd; padding: 1rem; margin: 1rem 0; border-radius: 10px; background: #f9f9f9; }
+    .title { font-weight: bold; font-size: 1.2rem; }
+    .date { color: gray; font-size: 0.9rem; margin-bottom: 0.5rem; }
   </style>
 </head>
 <body>
-  <h2>📋 อัพเดทโปรแกรมประจำวัน</h2>
-  <div class="controls">
-    <input type="date" id="start-date">
-    <input type="date" id="end-date">
-    <button onclick="filterData()">กรอง</button>
-    <button onclick="resetFilter()">ล้าง</button>
-  </div>
-  <div id="loading">🔄 กำลังโหลดข้อมูล...</div>
-  <div id="data-table" class="table-container"></div>
+  <h2>📢 อัพเดทโปรแกรมประจำวัน</h2>
+  <div id="posts">กำลังโหลดข้อมูล...</div>
 
   <script>
-    const sheetURL = 'https://docs.google.com/spreadsheets/d/1xRqnFHRWL3l_-6-LNJ_LM5Bejiv0aV5JwcV9PtzC-Nk/gviz/tq?sheet=Sheet1';
-    let dataRows = [], headers = [];
+    const sheetURL = "https://docs.google.com/spreadsheets/d/1xRqnFHRWL3l_-6-LNJ_LM5Bejiv0aV5JwcV9PtzC-Nk/gviz/tq?tqx=out:json";
 
     fetch(sheetURL)
       .then(res => res.text())
       .then(text => {
-        const json = JSON.parse(text.match(/google\.visualization\.Query\.setResponse\(([\s\S]+)\)/)[1]);
-        headers = json.table.cols.map(col => col.label);
-        dataRows = json.table.rows.map(row => {
-          const obj = {};
-          row.c.forEach((cell, i) => obj[headers[i]] = cell ? cell.v : '');
-          return obj;
+        const json = JSON.parse(text.substr(47).slice(0, -2)); // ตัด wrapper ที่ Google ใส่มา
+        const rows = json.table.rows;
+
+        const container = document.getElementById('posts');
+        container.innerHTML = "";
+
+        rows.forEach(row => {
+          const date = row.c[0]?.v || '';
+          const title = row.c[1]?.v || '';
+          const detail = row.c[2]?.v || '';
+
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.innerHTML = `
+            <div class="date">${date}</div>
+            <div class="title">${title}</div>
+            <div>${detail}</div>
+          `;
+          container.appendChild(card);
         });
-        document.getElementById('loading').style.display = 'none';
-        renderTable(dataRows);
+      })
+      .catch(err => {
+        document.getElementById('posts').innerText = "เกิดข้อผิดพลาดในการโหลดข้อมูล";
+        console.error("Error loading data:", err);
       });
-
-    // ฟังก์ชันแปลงวันที่จาก พ.ศ. เป็น ค.ศ. และแสดงผลเป็น format 10/03/2568
-    function formatDate(dateStr) {
-      if (!dateStr) return '';
-      const sep = dateStr.includes('/') ? '/' : '-';
-      const [d, m, y] = dateStr.split(sep).map(n => parseInt(n));
-      const year = y - 543; // แปลง พ.ศ. เป็น ค.ศ.
-      return `${d < 10 ? '0' + d : d}/${m < 10 ? '0' + m : m}/${year}`;
-    }
-
-    // ฟังก์ชันแปลงเป็น Date เพื่อการกรอง
-    function toDate(str) {
-      if (!str) return null;
-      const sep = str.includes('/') ? '/' : '-';
-      const [d, m, y] = str.split(sep).map(n => parseInt(n));
-      const year = y - 543;
-      const date = new Date(year, m - 1, d);
-      return isNaN(date.getTime()) ? null : date;
-    }
-
-    function renderTable(data) {
-      const table = document.getElementById('data-table');
-      if (!data.length) return table.innerHTML = '<p style="text-align:center;">❌ ไม่พบข้อมูล</p>';
-      let html = `<table><thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>`;
-      data.forEach(row => {
-        html += `<tr>${headers.map(h => `<td>${h === headers[0] ? formatDate(row[h]) : row[h] || ''}</td>`).join('')}</tr>`;
-      });
-      html += '</tbody></table>';
-      table.innerHTML = html;
-    }
-
-    function filterData() {
-      const startDate = document.getElementById('start-date').value;
-      const endDate = document.getElementById('end-date').value;
-
-      // ตรวจสอบว่าเลือกวันที่ครบแล้วหรือไม่
-      if (!startDate || !endDate) return alert('กรุณาเลือกวันที่ทั้งสอง');
-      
-      const start = toDate(startDate);
-      const end = toDate(endDate);
-      
-      if (!start || !end) return alert('วันที่ไม่ถูกต้อง กรุณาลองใหม่');
-
-      const filtered = dataRows.filter(r => {
-        const rowDate = toDate(r[headers[0]]);
-        return rowDate && rowDate >= start && rowDate <= end;
-      });
-      
-      renderTable(filtered);
-    }
-
-    function resetFilter() {
-      document.getElementById('start-date').value = '';
-      document.getElementById('end-date').value = '';
-      renderTable(dataRows);
-    }
   </script>
 </body>
 </html>
