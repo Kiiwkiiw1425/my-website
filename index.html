@@ -196,10 +196,6 @@
         catSelect.innerHTML += `<option value="${c}">${c}</option>`;
       });
     }
-
-      // Show loading message
-      document.getElementById("loadingMessage").style.display = "block";
-
       fetch(sheetURL)
         .then(res => res.text())
         .then(text => {
@@ -229,6 +225,9 @@
         renderPosts(allPosts);
       });
 
+    // Show loading message
+    document.getElementById("loadingMessage").style.display = "block";
+    
     document.getElementById("searchInput").addEventListener("keypress", e => {
       if (e.key === "Enter") applyFilters();
     });
