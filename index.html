@@ -1,50 +1,101 @@
 <!DOCTYPE html>
-<html>
+<html lang="th">
 <head>
   <meta charset="UTF-8">
   <title>อัปเดตโปรแกรมประจำวัน</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { font-family: sans-serif; padding: 1rem; max-width: 600px; margin: auto; }
-    .card { border: 1px solid #ddd; padding: 1rem; margin: 1rem 0; border-radius: 10px; background: #f9f9f9; }
+    body { font-family: sans-serif; padding: 1rem; max-width: 700px; margin: auto; }
+    h2 { text-align: center; }
+    .filters { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem; }
+    .filters input { padding: 0.5rem; font-size: 1rem; flex: 1; }
+    .card { border: 1px solid #ddd; padding: 1rem; margin-bottom: 1rem; border-radius: 10px; background: #f9f9f9; }
     .title { font-weight: bold; font-size: 1.2rem; }
     .date { color: gray; font-size: 0.9rem; margin-bottom: 0.5rem; }
+    @media (max-width: 600px) {
+      .filters { flex-direction: column; }
+    }
   </style>
 </head>
 <body>
-  <h2>📢 อัพเดทโปรแกรมประจำวัน</h2>
+  <h2>📢 อัปเดตโปรแกรมประจำวัน</h2>
+
+  <div class="filters">
+    <input type="text" id="searchInput" placeholder="🔍 ค้นหาชื่อโพสต์...">
+    <input type="date" id="startDate">
+    <input type="date" id="endDate">
+  </div>
+
   <div id="posts">กำลังโหลดข้อมูล...</div>
 
   <script>
     const sheetURL = "https://docs.google.com/spreadsheets/d/1xRqnFHRWL3l_-6-LNJ_LM5Bejiv0aV5JwcV9PtzC-Nk/gviz/tq?tqx=out:json";
 
+    let allPosts = [];
+
+    function formatDate(input) {
+      const [day, month, year] = input.split('/');
+      return new Date(`${year}-${month}-${day}`);
+    }
+
+    function renderPosts(data) {
+      const container = document.getElementById('posts');
+      container.innerHTML = "";
+
+      const search = document.getElementById('searchInput').value.toLowerCase();
+      const start = document.getElementById('startDate').value;
+      const end = document.getElementById('endDate').value;
+
+      const filtered = data.filter(post => {
+        const matchSearch = post.title.toLowerCase().includes(search);
+        const postDate = formatDate(post.date);
+
+        let matchDate = true;
+        if (start) matchDate = matchDate && postDate >= new Date(start);
+        if (end) matchDate = matchDate && postDate <= new Date(end);
+
+        return matchSearch && matchDate;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = "<p>ไม่พบข้อมูลที่ตรงกับเงื่อนไข</p>";
+        return;
+      }
+
+      filtered.forEach(post => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <div class="date">${post.date}</div>
+          <div class="title">${post.title}</div>
+          <div>${post.detail}</div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
     fetch(sheetURL)
       .then(res => res.text())
       .then(text => {
-        const json = JSON.parse(text.substr(47).slice(0, -2)); // ตัด wrapper ที่ Google ใส่มา
+        const json = JSON.parse(text.substr(47).slice(0, -2));
         const rows = json.table.rows;
 
-        const container = document.getElementById('posts');
-        container.innerHTML = "";
+        allPosts = rows.map(row => ({
+          date: row.c[0]?.v || '',
+          title: row.c[1]?.v || '',
+          detail: row.c[2]?.v || ''
+        }));
 
-        rows.forEach(row => {
-          const date = row.c[0]?.v || '';
-          const title = row.c[1]?.v || '';
-          const detail = row.c[2]?.v || '';
-
-          const card = document.createElement('div');
-          card.className = 'card';
-          card.innerHTML = `
-            <div class="date">${date}</div>
-            <div class="title">${title}</div>
-            <div>${detail}</div>
-          `;
-          container.appendChild(card);
-        });
+        renderPosts(allPosts);
       })
       .catch(err => {
         document.getElementById('posts').innerText = "เกิดข้อผิดพลาดในการโหลดข้อมูล";
-        console.error("Error loading data:", err);
+        console.error("Error:", err);
       });
+
+    document.getElementById('searchInput').addEventListener('input', () => renderPosts(allPosts));
+    document.getElementById('startDate').addEventListener('change', () => renderPosts(allPosts));
+    document.getElementById('endDate').addEventListener('change', () => renderPosts(allPosts));
   </script>
 </body>
 </html>
