@@ -197,9 +197,15 @@
       });
     }
 
+      // Show loading message
+      document.getElementById("loadingMessage").style.display = "block";
+    
     fetch(sheetURL)
       .then(res => res.text())
       .then(text => {
+        // Hide loading message when data is loaded
+        document.getElementById("loadingMessage").style.display = "none";
+        
         const json = JSON.parse(text.substr(47).slice(0, -2));
         const rows = json.table.rows;
 
