@@ -4,8 +4,9 @@
   <meta charset="UTF-8">
   <title>📢 อัปเดตโปรแกรมประจำวัน</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/docxtemplater/3.21.2/docxtemplater.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsPDF/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pizzip/3.0.0/pizzip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/docxtemplater/3.17.2/docxtemplater.min.js"></script>
 </head>
 <body class="bg-gray-50 text-gray-800 p-4">
 
@@ -32,10 +33,10 @@
       </div>
     </div>
 
-    <!-- Sorting -->
-    <div class="flex items-center mb-6">
-      <label class="text-sm mr-4">การจัดเรียง:</label>
-      <select id="sortOrder" onchange="applyFilters()" class="border px-2 py-1 rounded">
+    <!-- Sort Order -->
+    <div class="mb-6">
+      <label class="text-sm">การจัดเรียง</label>
+      <select id="sortOrder" class="w-full border px-2 py-1 rounded" onchange="applyFilters()">
         <option value="desc">ล่าสุดอยู่บนสุด</option>
         <option value="asc">เก่าสุดอยู่บนสุด</option>
       </select>
@@ -53,8 +54,8 @@
 
     <!-- Export Buttons -->
     <div class="mb-6">
-      <button onclick="exportPDF()" class="bg-green-500 text-white px-3 py-1 rounded mr-2">Export PDF</button>
-      <button onclick="exportWord()" class="bg-yellow-500 text-white px-3 py-1 rounded">Export Word</button>
+      <button onclick="exportToPDF()" class="bg-green-500 text-white px-3 py-1 rounded mr-2">Export PDF</button>
+      <button onclick="exportToWord()" class="bg-yellow-500 text-white px-3 py-1 rounded">Export Word</button>
     </div>
 
     <!-- Posts -->
@@ -86,16 +87,16 @@
 
     function extractMonth(dateStr) {
       const date = parseThaiDate(dateStr);
-      return `${date.getFullYear()}-${date.getMonth() + 1}`; // "2025-3"
+      return `${date.getFullYear()}-${date.getMonth() + 1}`;
     }
 
     function applyFilters() {
       const search = document.getElementById("searchInput").value.toLowerCase();
       const start = document.getElementById("startDate").value;
       const end = document.getElementById("endDate").value;
+      const sortOrder = document.getElementById("sortOrder").value;
       const monthVal = document.getElementById("monthFilter").value;
       const catVal = document.getElementById("categoryFilter").value;
-      const sortOrder = document.getElementById("sortOrder").value;
 
       const filtered = allPosts.filter(post => {
         const postDate = parseThaiDate(post.date);
@@ -111,24 +112,13 @@
         return match;
       });
 
-      // Sorting
-      filtered.sort((a, b) => {
-        return sortOrder === "desc" 
-          ? b.sortDate - a.sortDate // ล่าสุดอยู่บนสุด
-          : a.sortDate - b.sortDate; // เก่าสุดอยู่บนสุด
-      });
+      if (sortOrder === "asc") {
+        filtered.sort((a, b) => new Date(a.sortDate) - new Date(b.sortDate));
+      } else {
+        filtered.sort((a, b) => new Date(b.sortDate) - new Date(a.sortDate));
+      }
 
       renderPosts(filtered);
-    }
-
-    function resetFilters() {
-      document.getElementById("searchInput").value = "";
-      document.getElementById("startDate").value = "";
-      document.getElementById("endDate").value = "";
-      document.getElementById("monthFilter").value = "";
-      document.getElementById("categoryFilter").value = "";
-      document.getElementById("sortOrder").value = "desc";
-      renderPosts(allPosts);
     }
 
     function renderPosts(data) {
@@ -146,37 +136,26 @@
       });
     }
 
-    function fillDropdowns() {
-      const months = [...new Set(allPosts.map(p => p.month))].sort().reverse();
-      const monthSelect = document.getElementById("monthFilter");
-      months.forEach(m => {
-        const [y, mo] = m.split('-');
-        const label = `${monthNames[parseInt(mo)]} ${parseInt(y) + 543}`;
-        monthSelect.innerHTML += `<option value="${m}">${label}</option>`;
-      });
-
-      const categories = [...new Set(allPosts.map(p => p.category))].filter(c => c);
-      const catSelect = document.getElementById("categoryFilter");
-      categories.forEach(c => {
-        catSelect.innerHTML += `<option value="${c}">${c}</option>`;
-      });
-    }
-
-    function exportPDF() {
+    function exportToPDF() {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
-      doc.text("อัปเดตโปรแกรมประจำวัน", 20, 20);
-      const posts = document.getElementById('posts').innerText;
-      doc.text(posts, 20, 30);
-      doc.save('update_report.pdf');
+      const filteredPosts = allPosts.filter(post => post.date >= document.getElementById("startDate").value && post.date <= document.getElementById("endDate").value);
+      filteredPosts.forEach((post, idx) => {
+        doc.text(`${formatThaiDate(post.date)} - ${post.title}`, 10, 10 + (idx * 10));
+      });
+      doc.save('export.pdf');
     }
 
-    function exportWord() {
-      const doc = new Docxtemplater();
-      doc.setData({ posts: document.getElementById('posts').innerText });
+    function exportToWord() {
+      const filteredPosts = allPosts.filter(post => post.date >= document.getElementById("startDate").value && post.date <= document.getElementById("endDate").value);
+      const zip = new PizZip();
+      const doc = new Docxtemplater(zip);
+      const content = filteredPosts.map(post => `${formatThaiDate(post.date)} - ${post.title}\n${post.detail}`).join("\n\n");
+
+      doc.setData({ content });
       doc.render();
-      const out = doc.getZip().generate({ type: "blob" });
-      saveAs(out, "update_report.docx");
+      const blob = doc.getZip().generate({ type: 'blob' });
+      saveAs(blob, 'export.docx');
     }
 
     fetch(sheetURL)
@@ -200,8 +179,7 @@
           };
         });
 
-        allPosts.sort((a, b) => b.sortDate - a.sortDate); // เริ่มต้นล่าสุด
-        fillDropdowns();
+        allPosts.sort((a, b) => b.sortDate - a.sortDate);
         renderPosts(allPosts);
       });
 
