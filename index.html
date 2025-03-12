@@ -7,39 +7,60 @@
 </head>
 <body class="bg-gray-50 text-gray-800 p-4">
 
-  <div class="max-w-4xl mx-auto">
-    <h2 class="text-2xl font-bold mb-4">📢 อัปเดตโปรแกรมประจำวัน</h2>
+  <div class="max-w-6xl mx-auto">
+    <h2 class="text-3xl font-semibold mb-6 text-center text-blue-600">📢 อัปเดตโปรแกรมประจำวัน</h2>
 
-    <!-- Filters -->
-    <div class="grid md:grid-cols-4 sm:grid-cols-2 gap-4 mb-6">
+    <!-- Filters Section -->
+    <div class="grid md:grid-cols-4 sm:grid-cols-2 gap-6 mb-6">
       <div>
-        <label class="text-sm">ค้นหา</label>
-        <input id="searchInput" type="text" placeholder="ค้นหาคำ..." class="w-full border px-2 py-1 rounded" />
+        <label class="block text-sm font-semibold text-gray-700 mb-1">ค้นหา</label>
+        <input id="searchInput" type="text" placeholder="ค้นหาคำ..." class="w-full border border-gray-300 rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
       </div>
       <div>
-        <label class="text-sm">วันที่เริ่มต้น</label>
-        <input id="startDate" type="date" class="w-full border px-2 py-1 rounded" />
+        <label class="block text-sm font-semibold text-gray-700 mb-1">วันที่เริ่มต้น</label>
+        <input id="startDate" type="date" class="w-full border border-gray-300 rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
       </div>
       <div>
-        <label class="text-sm">วันที่สิ้นสุด</label>
-        <input id="endDate" type="date" class="w-full border px-2 py-1 rounded" />
+        <label class="block text-sm font-semibold text-gray-700 mb-1">วันที่สิ้นสุด</label>
+        <input id="endDate" type="date" class="w-full border border-gray-300 rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
       </div>
-      <div class="flex items-end gap-2">
-        <button onclick="applyFilters()" class="bg-blue-500 text-white px-3 py-1 rounded">ค้นหา</button>
-        <button onclick="resetFilters()" class="bg-gray-300 px-3 py-1 rounded">ล้าง</button>
+      <div class="flex items-end gap-4">
+        <button onclick="applyFilters()" class="bg-blue-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">ค้นหา</button>
+        <button onclick="resetFilters()" class="bg-gray-300 px-4 py-2 rounded-lg shadow-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500">ล้าง</button>
       </div>
     </div>
 
     <!-- Month/Category Filters -->
-    <div class="flex flex-wrap gap-2 mb-6">
-      <label class="text-sm">เลือกเดือน</label><br>
-      <select id="monthFilter" class="border px-2 py-1 rounded" onchange="applyFilters()">
-        <option value="">ทุกเดือน</option>
-      </select>
+    <div class="flex flex-wrap gap-4 mb-6">
+      <div class="flex-1">
+        <label class="block text-sm font-semibold text-gray-700 mb-1">เลือกเดือน</label>
+        <select id="monthFilter" class="w-full border border-gray-300 rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="applyFilters()">
+          <option value="">ทุกเดือน</option>
+        </select>
+      </div>
+      <div class="flex-1">
+        <label class="block text-sm font-semibold text-gray-700 mb-1">เลือกหมวดหมู่</label>
+        <select id="categoryFilter" class="w-full border border-gray-300 rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="applyFilters()">
+          <option value="">ทุกหมวดหมู่</option>
+        </select>
+      </div>
     </div>
 
-    <!-- Posts -->
-    <div id="posts"></div>
+    <!-- Posts Section (Table Display) -->
+    <div id="posts" class="overflow-x-auto">
+      <table class="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
+        <thead>
+          <tr>
+            <th class="px-6 py-3 text-left text-sm font-medium text-gray-700 bg-gray-100">วันที่</th>
+            <th class="px-6 py-3 text-left text-sm font-medium text-gray-700 bg-gray-100">หัวข้อ</th>
+            <th class="px-6 py-3 text-left text-sm font-medium text-gray-700 bg-gray-100">รายละเอียด</th>
+          </tr>
+        </thead>
+        <tbody id="postsTableBody">
+          <!-- Dynamic posts will be inserted here -->
+        </tbody>
+      </table>
+    </div>
   </div>
 
   <script>
@@ -104,17 +125,17 @@
     }
 
     function renderPosts(data) {
-      const container = document.getElementById("posts");
-      container.innerHTML = data.length === 0 ? "<p>ไม่พบข้อมูล</p>" : "";
+      const tableBody = document.getElementById("postsTableBody");
+      tableBody.innerHTML = data.length === 0 ? "<tr><td colspan='3' class='px-6 py-3 text-center text-sm text-gray-500'>ไม่พบข้อมูล</td></tr>" : "";
       data.forEach(post => {
-        const div = document.createElement("div");
-        div.className = "bg-white border shadow-sm p-4 mb-4 rounded";
-        div.innerHTML = `
-          <div class="text-sm text-gray-500 mb-1">${formatThaiDate(post.date)}</div>
-          <div class="font-bold text-lg mb-2">${post.title}</div>
-          <div class="text-sm">${post.detail.replace(/\n/g, "<br>")}</div>
+        const tr = document.createElement("tr");
+        tr.className = "border-b border-gray-200 hover:bg-gray-50";
+        tr.innerHTML = `
+          <td class="px-6 py-3 text-sm text-gray-700">${formatThaiDate(post.date)}</td>
+          <td class="px-6 py-3 text-sm font-semibold text-gray-800">${post.title}</td>
+          <td class="px-6 py-3 text-sm text-gray-600">${post.detail.replace(/\n/g, "<br>")}</td>
         `;
-        container.appendChild(div);
+        tableBody.appendChild(tr);
       });
     }
 
