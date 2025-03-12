@@ -32,12 +32,19 @@
 
     <!-- Month/Category Filters -->
     <div class="flex flex-wrap gap-4 mb-6">
-      <div class="w-auto">
+    <div class="w-auto">
         <label class="block text-sm font-semibold text-gray-700 mb-1">เลือกเดือน</label>
-        <select id="monthFilter" class="w-auto border border-gray-300 rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="applyFilters()">
+        <select id="monthFilter" class="w-full border border-gray-300 rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="applyFilters()">
           <option value="">ทุกเดือน</option>
         </select>
       </div>
+      <div class="w-auto">
+        <label class="block text-sm font-semibold text-gray-700 mb-1">เลือกหมวดหมู่</label>
+        <select id="categoryFilter" class="w-full border border-gray-300 rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="applyFilters()">
+          <option value="">ทุกหมวดหมู่</option>
+        </select>
+      </div>
+    </div>
 
     <!-- Posts Section (Table Display) -->
     <div id="posts" class="overflow-x-auto">
