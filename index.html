@@ -33,15 +33,6 @@
       </div>
     </div>
 
-    <!-- Sort Order -->
-    <div class="mb-6">
-      <label class="text-sm">การจัดเรียง</label>
-      <select id="sortOrder" class="w-full border px-2 py-1 rounded" onchange="applyFilters()">
-        <option value="desc">ล่าสุดอยู่บนสุด</option>
-        <option value="asc">เก่าสุดอยู่บนสุด</option>
-      </select>
-    </div>
-
     <!-- Month/Category Filters -->
     <div class="flex flex-wrap gap-2 mb-6">
       <select id="monthFilter" class="border px-2 py-1 rounded" onchange="applyFilters()">
@@ -56,6 +47,15 @@
     <div class="mb-6">
       <button onclick="exportToPDF()" class="bg-green-500 text-white px-3 py-1 rounded mr-2">Export PDF</button>
       <button onclick="exportToWord()" class="bg-yellow-500 text-white px-3 py-1 rounded">Export Word</button>
+    </div>
+
+        <!-- Sort Order -->
+    <div class="mb-6">
+      <label class="text-sm">การจัดเรียง</label>
+      <select id="sortOrder" class="w-full border px-2 py-1 rounded" onchange="applyFilters()">
+        <option value="desc">ล่าสุดอยู่บนสุด</option>
+        <option value="asc">เก่าสุดอยู่บนสุด</option>
+      </select>
     </div>
 
     <!-- Posts -->
