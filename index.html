@@ -7,11 +7,15 @@
   <style>
     body { font-family: sans-serif; padding: 1rem; max-width: 700px; margin: auto; }
     h2 { text-align: center; }
-    .filters { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem; }
-    .filters input { padding: 0.5rem; font-size: 1rem; flex: 1; }
+    .filters { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
+    .filters input, .filters button {
+      padding: 0.5rem; font-size: 1rem; flex: 1;
+    }
     .card { border: 1px solid #ddd; padding: 1rem; margin-bottom: 1rem; border-radius: 10px; background: #f9f9f9; }
     .title { font-weight: bold; font-size: 1.2rem; }
     .date { color: gray; font-size: 0.9rem; margin-bottom: 0.5rem; }
+    button { cursor: pointer; background: #007bff; color: white; border: none; border-radius: 5px; }
+    button:hover { background: #0056b3; }
     @media (max-width: 600px) {
       .filters { flex-direction: column; }
     }
@@ -21,20 +25,25 @@
   <h2>📢 อัปเดตโปรแกรมประจำวัน</h2>
 
   <div class="filters">
-    <input type="text" id="searchInput" placeholder="🔍 ค้นหาชื่อโพสต์...">
+    <input type="text" id="searchInput" placeholder="🔍 ค้นหาคำในโพสต์...">
     <input type="date" id="startDate">
     <input type="date" id="endDate">
+    <button onclick="applyFilters()">ค้นหา</button>
+    <button onclick="resetFilters()" style="background:#6c757d;">ล้างค่า</button>
   </div>
 
   <div id="posts">กำลังโหลดข้อมูล...</div>
 
   <script>
     const sheetURL = "https://docs.google.com/spreadsheets/d/1xRqnFHRWL3l_-6-LNJ_LM5Bejiv0aV5JwcV9PtzC-Nk/gviz/tq?tqx=out:json";
-
     let allPosts = [];
 
-    function formatDate(input) {
-      const [day, month, year] = input.split('/');
+    // แปลงวันที่ไทย "27/02/2568" เป็น Date object
+    function parseThaiDate(dateStr) {
+      const parts = dateStr.split('/');
+      if (parts.length !== 3) return new Date("Invalid");
+      let [day, month, year] = parts;
+      if (parseInt(year) > 2500) year = parseInt(year) - 543; // พ.ศ. -> ค.ศ.
       return new Date(`${year}-${month}-${day}`);
     }
 
@@ -42,38 +51,63 @@
       const container = document.getElementById('posts');
       container.innerHTML = "";
 
-      const search = document.getElementById('searchInput').value.toLowerCase();
-      const start = document.getElementById('startDate').value;
-      const end = document.getElementById('endDate').value;
-
-      const filtered = data.filter(post => {
-        const matchSearch = post.title.toLowerCase().includes(search);
-        const postDate = formatDate(post.date);
-
-        let matchDate = true;
-        if (start) matchDate = matchDate && postDate >= new Date(start);
-        if (end) matchDate = matchDate && postDate <= new Date(end);
-
-        return matchSearch && matchDate;
-      });
-
-      if (filtered.length === 0) {
+      if (data.length === 0) {
         container.innerHTML = "<p>ไม่พบข้อมูลที่ตรงกับเงื่อนไข</p>";
         return;
       }
 
-      filtered.forEach(post => {
+      data.forEach(post => {
         const card = document.createElement('div');
         card.className = 'card';
         card.innerHTML = `
           <div class="date">${post.date}</div>
           <div class="title">${post.title}</div>
-          <div>${post.detail}</div>
+          <div>${post.detail.replace(/\n/g, '<br>')}</div>
         `;
         container.appendChild(card);
       });
     }
 
+    function applyFilters() {
+      const search = document.getElementById('searchInput').value.toLowerCase();
+      const start = document.getElementById('startDate').value;
+      const end = document.getElementById('endDate').value;
+
+      const filtered = allPosts.filter(post => {
+        const content = `${post.title} ${post.detail}`.toLowerCase();
+        const postDate = parseThaiDate(post.date);
+
+        let matchSearch = true;
+        let matchDate = true;
+
+        if (search) {
+          matchSearch = content.includes(search);
+        }
+
+        if (start) {
+          const startDate = new Date(start);
+          matchDate = matchDate && postDate >= startDate;
+        }
+
+        if (end) {
+          const endDate = new Date(end);
+          matchDate = matchDate && postDate <= endDate;
+        }
+
+        return matchSearch && matchDate;
+      });
+
+      renderPosts(filtered);
+    }
+
+    function resetFilters() {
+      document.getElementById('searchInput').value = "";
+      document.getElementById('startDate').value = "";
+      document.getElementById('endDate').value = "";
+      renderPosts(allPosts);
+    }
+
+    // โหลดข้อมูล
     fetch(sheetURL)
       .then(res => res.text())
       .then(text => {
@@ -92,10 +126,6 @@
         document.getElementById('posts').innerText = "เกิดข้อผิดพลาดในการโหลดข้อมูล";
         console.error("Error:", err);
       });
-
-    document.getElementById('searchInput').addEventListener('input', () => renderPosts(allPosts));
-    document.getElementById('startDate').addEventListener('change', () => renderPosts(allPosts));
-    document.getElementById('endDate').addEventListener('change', () => renderPosts(allPosts));
   </script>
 </body>
 </html>
