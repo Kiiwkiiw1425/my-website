@@ -75,10 +75,14 @@
     <div class="flex items-center mb-6 gap-4">
       <label for="updateStatus" class="block text-sm font-semibold text-gray-700 mb-1">อัปเดต:</label>
       <select id="updateStatus" class="border border-gray-300 rounded-lg px-3 py-2 shadow-sm" onchange="applyUpdateStatus()">
-        <option value="latest">อัปเดตล่าสุด</option>
+        <option value="">-- เลือกตัวกรอง --</option>
+        <option value="latest">อัปเดตล่าสุด (3 วัน)</option>
+        <option value="hasUpdate">วันที่มีอัปเดต</option>
+        <option value="noUpdate">วันที่ไม่มีอัปเดต</option>
       </select>
       <p id="updateCount" class="text-sm text-gray-600"></p>
     </div>
+
 
     <!-- Posts Section (Table Display) -->
     <div id="posts" class="overflow-x-auto">
@@ -189,23 +193,31 @@
           renderPosts(allPosts.filter(p => p.detail)); // แสดงเฉพาะโพสต์ที่มีรายละเอียด
         }
 
-    function renderPosts(data) {
-      const tableBody = document.getElementById("postsTableBody");
-      tableBody.innerHTML = data.length === 0
-        ? "<tr><td colspan='3' class='px-6 py-3 text-center text-sm text-gray-500'>ไม่พบข้อมูล</td></tr>"
-        : "";
-
-      data.forEach(post => {
-        const tr = document.createElement("tr");
-        tr.className = "border-b border-gray-200 hover:bg-gray-50";
-        tr.innerHTML = `
-          <td class="px-6 py-3 text-sm text-gray-700">${formatThaiDate(post.date) || 'ข้อมูลไม่ครบถ้วน'}</td>
-          <td class="px-6 py-3 text-sm font-semibold text-gray-800">${post.title || 'ข้อมูลไม่ครบถ้วน'}</td>
-          <td class="px-6 py-3 text-sm text-gray-600">${post.detail ? post.detail.replace(/\n/g, "<br>") : 'ข้อมูลไม่ครบถ้วน'}</td>
-        `;
-        tableBody.appendChild(tr);
-      });
-    }
+          function renderPosts(data) {
+            const tableBody = document.getElementById("postsTableBody");
+            const postsSection = document.getElementById("posts");
+          
+            tableBody.innerHTML = data.length === 0
+              ? "<tr><td colspan='3' class='px-6 py-3 text-center text-sm text-gray-500'>ไม่พบข้อมูล</td></tr>"
+              : "";
+          
+            data.forEach(post => {
+              const tr = document.createElement("tr");
+              tr.className = "border-b border-gray-200 hover:bg-gray-50";
+              tr.innerHTML = `
+                <td class="px-6 py-3 text-sm text-gray-700">${formatThaiDate(post.date) || 'ข้อมูลไม่ครบถ้วน'}</td>
+                <td class="px-6 py-3 text-sm font-semibold text-gray-800">${post.title || 'ข้อมูลไม่ครบถ้วน'}</td>
+                <td class="px-6 py-3 text-sm text-gray-600">${post.detail ? post.detail.replace(/\n/g, "<br>") : 'ข้อมูลไม่ครบถ้วน'}</td>
+              `;
+              tableBody.appendChild(tr);
+            });
+          
+            // เพิ่มจำนวนรายการด้านหลังหัวข้อ "รายการอัปเดต"
+            const label = postsSection.querySelector("label");
+            if (label) {
+              label.innerText = `รายการอัปเดต (${data.length} รายการ)`;
+            }
+          }
 
     function fillDropdowns() {
       const months = [...new Set(allPosts.map(p => p.month))].filter(Boolean).sort((a, b) => {
@@ -227,24 +239,46 @@
       });
     }
 
-    function applyUpdateStatus() {
-      const updateStatus = document.getElementById("updateStatus").value;
-    
-      if (updateStatus === "latest") {
-        const filtered = allPosts.filter(p => p.detail); // เฉพาะรายการที่มีรายละเอียด
+      function applyUpdateStatus() {
+        const updateStatus = document.getElementById("updateStatus").value;
+        let filtered = [];
+      
+        if (updateStatus === "latest") {
+          const today = new Date();
+          const threeDaysAgo = new Date(today);
+          threeDaysAgo.setDate(today.getDate() - 3);
+      
+          filtered = allPosts.filter(p => {
+            const date = parseThaiDate(p.date);
+            return date >= threeDaysAgo && date <= today && p.detail && !p.detail.includes("ไม่มีอัปเดต");
+          });
+      
+        } else if (updateStatus === "hasUpdate") {
+          filtered = allPosts.filter(p => p.detail && !p.detail.includes("ไม่มีอัปเดต"));
+      
+        } else if (updateStatus === "noUpdate") {
+          filtered = allPosts.filter(p => p.detail && p.detail.includes("ไม่มีอัปเดต"));
+      
+        } else {
+          // หากไม่ได้เลือกอะไร
+          filtered = allPosts.filter(p => p.detail);
+        }
+      
         renderPosts(filtered);
-    
-        // แสดงจำนวนรายการ
-        document.getElementById("updateCount").innerText = `${filtered.length} รายการ`;
-    
-        // แสดงวันล่าสุดที่มีการอัปเดต
-        const latest = filtered[0];
-        const currentDate = new Date();
-        const updateDate = parseThaiDate(latest.date);
-        const daysDiff = Math.floor((currentDate - updateDate) / (1000 * 60 * 60 * 24));
-        document.getElementById("updateCount").innerText += ` (อัปเดตล่าสุดเมื่อ ${daysDiff} วันก่อน)`;
+      
+        // นับจำนวนและแสดงวันที่ล่าสุด
+        const countText = `${filtered.length} รายการ`;
+        let latestText = "";
+        if (filtered.length > 0) {
+          const latest = filtered[0];
+          const currentDate = new Date();
+          const updateDate = parseThaiDate(latest.date);
+          const daysDiff = Math.floor((currentDate - updateDate) / (1000 * 60 * 60 * 24));
+          latestText = ` (อัปเดตล่าสุดเมื่อ ${daysDiff} วันก่อน)`;
+        }
+      
+        document.getElementById("updateCount").innerText = countText + latestText;
       }
-    }
 
     // Load Data
     fetch(sheetURL)
