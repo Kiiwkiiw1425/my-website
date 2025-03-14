@@ -267,16 +267,7 @@
       
         renderPosts(filtered);
       
-        // นับจำนวนและแสดงวันที่ล่าสุด
-        const countText = `${filtered.length} รายการ`;
-        let latestText = "";
-        if (filtered.length > 0) {
-          const latest = filtered[0];
-          const currentDate = new Date();
-          const updateDate = parseThaiDate(latest.date);
-          const daysDiff = Math.floor((currentDate - updateDate) / (1000 * 60 * 60 * 24));
-          latestText = ` (อัปเดตล่าสุดเมื่อ ${daysDiff} วันก่อน)`;
-        }
+
       
         document.getElementById("updateCount").innerText = countText + latestText;
       }
