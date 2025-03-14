@@ -151,43 +151,60 @@
       return `${date.getFullYear()}-${date.getMonth() + 1}`;
     }
 
-    function applyFilters() {
-      const search = document.getElementById("searchInput").value.toLowerCase();
-      const start = document.getElementById("startDate").value;
-      const end = document.getElementById("endDate").value;
-      const monthVal = document.getElementById("monthFilter").value;
-      const catVal = document.getElementById("categoryFilter").value;
-    
-      const filtered = allPosts.filter(post => {
-        if (!post.detail) return false; // ตัดรายการที่ไม่มีรายละเอียดออก
-    
-        const postDate = parseThaiDate(post.date);
-        const content = `${post.title} ${post.detail}`.toLowerCase();
-        let match = true;
-    
-        if (search && !content.includes(search)) match = false;
-        if (start && postDate < new Date(start)) match = false;
-        if (end && postDate > new Date(end)) match = false;
-        if (monthVal && post.month !== monthVal) match = false;
-        if (catVal && post.category !== catVal) match = false;
-    
-        return match;
-      });
-    
-      renderPosts(filtered);
-    }
+          function applyFilters() {
+            const search = document.getElementById("searchInput").value.toLowerCase();
+            const start = document.getElementById("startDate").value;
+            const end = document.getElementById("endDate").value;
+            const monthVal = document.getElementById("monthFilter").value;
+            const catVal = document.getElementById("categoryFilter").value;
+            const updateStatus = document.getElementById("updateStatus").value;
+          
+            const today = new Date();
+            const latestThreshold = new Date();
+            latestThreshold.setDate(today.getDate() - 7); // 7 วันล่าสุด
+          
+            const filtered = allPosts.filter(post => {
+              if (!post.detail) return false;
+          
+              const postDate = parseThaiDate(post.date);
+              const content = `${post.title} ${post.detail}`.toLowerCase();
+          
+              let match = true;
+          
+              if (search && !content.includes(search)) match = false;
+              if (start && postDate < new Date(start)) match = false;
+              if (end && postDate > new Date(end)) match = false;
+              if (monthVal && post.month !== monthVal) match = false;
+              if (catVal && post.category !== catVal) match = false;
+          
+              if (updateStatus === "latest" && (postDate < latestThreshold || postDate > today || post.detail.includes("ไม่มีอัปเดต"))) {
+                match = false;
+              } else if (updateStatus === "hasUpdate" && post.detail.includes("ไม่มีอัปเดต")) {
+                match = false;
+              } else if (updateStatus === "noUpdate" && !post.detail.includes("ไม่มีอัปเดต")) {
+                match = false;
+              }
+          
+              return match;
+            });
+          
+            renderPosts(filtered);
+          
+            // แสดงจำนวนที่กรองได้
+            document.getElementById("updateCount").innerText = `พบทั้งหมด ${filtered.length} รายการ`;
+          }
 
-        function resetFilters() {
-          document.getElementById("searchInput").value = "";
-          document.getElementById("startDate").value = "";
-          document.getElementById("endDate").value = "";
-          document.getElementById("monthFilter").value = "";
-          document.getElementById("categoryFilter").value = "";
-          document.getElementById("updateCount").innerText = "";
-          document.getElementById("updateStatus").innerText = "";
-          renderPosts(allPosts.filter(p => p.detail)); // แสดงเฉพาะโพสต์ที่มีรายละเอียด
-        }
-
+          function resetFilters() {
+            document.getElementById("searchInput").value = "";
+            document.getElementById("startDate").value = "";
+            document.getElementById("endDate").value = "";
+            document.getElementById("monthFilter").value = "";
+            document.getElementById("categoryFilter").value = "";
+            document.getElementById("updateStatus").value = "";
+            document.getElementById("updateCount").innerText = "";
+            applyFilters();
+          }
+    
           function renderPosts(data) {
             const tableBody = document.getElementById("postsTableBody");
             const postsSection = document.getElementById("posts");
@@ -258,10 +275,9 @@
           // หากไม่ได้เลือกอะไร
           filtered = allPosts.filter(p => p.detail);
         }
-      
-        renderPosts(filtered);
-      
 
+        applyFilters();      
+        renderPosts(filtered);
       
         document.getElementById("updateCount").innerText = countText + latestText;
       }
