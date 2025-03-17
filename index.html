@@ -126,149 +126,109 @@
       }
     });
 
-    const sheetURL = "https://docs.google.com/spreadsheets/d/1xRqnFHRWL3l_-6-LNJ_LM5Bejiv0aV5JwcV9PtzC-Nk/gviz/tq?tqx=out:json";
-    let allPosts = [];
-
-    const monthNames = ["", "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
-
-    function parseThaiDate(dateStr) {
-      const parts = dateStr.split('/');
-      if (parts.length !== 3) return new Date("Invalid");
-      let [day, month, year] = parts;
-      year = parseInt(year) > 2500 ? parseInt(year) - 543 : year;
-      return new Date(`${year}-${month}-${day}`);
-    }
-
-    function formatThaiDate(dateStr) {
-      const date = parseThaiDate(dateStr);
-      if (isNaN(date)) return dateStr;
-      const day = date.getDate();
-      const month = monthNames[date.getMonth() + 1];
-      const year = date.getFullYear() + 543;
-      return `${day} ${month} ${year}`;
-    }
-
-    function extractMonth(dateStr) {
-      const date = parseThaiDate(dateStr);
-      if (isNaN(date)) return "";
-      return `${date.getFullYear()}-${date.getMonth() + 1}`;
-    }
-
-    function applyFilters() {
-      const search = document.getElementById("searchInput").value.toLowerCase();
-      const start = document.getElementById("startDate").value;
-      const end = document.getElementById("endDate").value;
-      const monthVal = document.getElementById("monthFilter").value;
-      const catVal = document.getElementById("categoryFilter").value;
-      const updateStatus = document.getElementById("updateStatus").value;
-
-      const filtered = allPosts.filter(post => {
-        const postDate = parseThaiDate(post.date);
-        const content = `${post.title} ${post.detail}`.toLowerCase();
-        let match = true;
-
-        if (search && !content.includes(search)) match = false;
-        if (start && postDate < new Date(start)) match = false;
-        if (end && postDate > new Date(end)) match = false;
-        if (monthVal && post.month !== monthVal) match = false;
-        if (catVal && post.category !== catVal) match = false;
-        if (updateStatus === "hasUpdate" && !post.detail) match = false;
-        if (updateStatus === "noUpdate" && post.detail) match = false;
-
-        return match;
-      });
-
-      renderPosts(filtered);
-    }
-
-    function resetFilters() {
-      document.getElementById("searchInput").value = "";
-      document.getElementById("startDate").value = "";
-      document.getElementById("endDate").value = "";
-      document.getElementById("monthFilter").value = "";
-      document.getElementById("categoryFilter").value = "";
-      document.getElementById("updateStatus").value = "";
-      renderPosts(allPosts);
-    }
-
-    function renderPosts(data) {
-      const tableBody = document.getElementById("postsTableBody");
-      tableBody.innerHTML = data.length === 0
-        ? "<tr><td colspan='3' class='px-6 py-3 text-center text-sm text-gray-500'>ไม่พบข้อมูล</td></tr>"
-        : "";
-
-      data.forEach(post => {
-        const tr = document.createElement("tr");
-        tr.className = "border-b border-gray-200 hover:bg-gray-50";
-        tr.innerHTML = `
-          <td class="px-6 py-3 text-sm text-gray-700">${formatThaiDate(post.date) || 'ข้อมูลไม่ครบถ้วน'}</td>
-          <td class="px-6 py-3 text-sm font-semibold text-gray-800">${post.title || 'ข้อมูลไม่ครบถ้วน'}</td>
-          <td class="px-6 py-3 text-sm text-gray-600">${post.detail ? post.detail.replace(/\n/g, "<br>") : 'ข้อมูลไม่ครบถ้วน'}</td>
-        `;
-        tableBody.appendChild(tr);
-      });
-    }
-
-    function fillDropdowns() {
-      const months = [...new Set(allPosts.map(p => p.month))].filter(Boolean).sort((a, b) => {
-        const [yA, mA] = a.split('-');
-        const [yB, mB] = b.split('-');
-        return (yB - yA) || (mB - mA);
-      });
-      const monthSelect = document.getElementById("monthFilter");
-      months.forEach(m => {
-        const [y, mo] = m.split('-');
-        const label = `${monthNames[parseInt(mo)]} ${parseInt(y) + 543}`;
-        monthSelect.innerHTML += `<option value="${m}">${label}</option>`;
-      });
-
-      const categories = [...new Set(allPosts.map(p => p.category))].filter(c => c);
-      const catSelect = document.getElementById("categoryFilter");
-      categories.forEach(c => {
-        catSelect.innerHTML += `<option value="${c}">${c}</option>`;
-      });
-    }
-
-    // Get latest update
-    function showLatestUpdate() {
-      const latestPost = allPosts[0];
-      const currentDate = new Date();
-      const updateDate = parseThaiDate(latestPost.date);
-      const daysDiff = Math.floor((currentDate - updateDate) / (1000 * 60 * 60 * 24));
-      document.getElementById("daysSinceLastUpdate").innerText = `อัปเดตล่าสุดเมื่อ ${daysDiff} วัน`;
-    }
-
-    // Load Data
-    fetch(sheetURL)
-      .then(res => res.text())
-      .then(text => {
-        const json = JSON.parse(text.substr(47).slice(0, -2));
-        const rows = json.table.rows;
-
-        allPosts = rows.map(row => {
-          const rawDate = row.c[0]?.f || row.c[0]?.v || '';
-          const title = row.c[1]?.v || '';
-          const detail = row.c[2]?.v || '';
-          const category = row.c[3]?.v || '';
-          return {
-            date: rawDate,
-            title,
-            detail,
-            category,
-            month: extractMonth(rawDate),
-            sortDate: parseThaiDate(rawDate)
-          };
+      const sheetURL = "https://docs.google.com/spreadsheets/d/1xRqnFHRWL3l_-6-LNJ_LM5Bejiv0aV5JwcV9PtzC-Nk/gviz/tq?tqx=out:json";
+      const monthNames = ["", "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+      let allPosts = [];
+      
+      const $ = id => document.getElementById(id); // shorthand
+      
+      const parseThaiDate = str => {
+        const [d, m, y] = str.split('/');
+        if (!d || !m || !y) return new Date("Invalid");
+        const year = +y > 2500 ? +y - 543 : +y;
+        return new Date(`${year}-${m}-${d}`);
+      };
+      
+      const formatThaiDate = str => {
+        const d = parseThaiDate(str);
+        if (isNaN(d)) return str;
+        return `${d.getDate()} ${monthNames[d.getMonth() + 1]} ${d.getFullYear() + 543}`;
+      };
+      
+      const extractMonth = str => {
+        const d = parseThaiDate(str);
+        return isNaN(d) ? "" : `${d.getFullYear()}-${d.getMonth() + 1}`;
+      };
+      
+      const createOption = (value, label) => `<option value="${value}">${label}</option>`;
+      
+      const fillDropdowns = () => {
+        const months = [...new Set(allPosts.map(p => p.month))].filter(Boolean).sort().reverse();
+        $("monthFilter").innerHTML += months.map(m => {
+          const [y, mo] = m.split("-");
+          return createOption(m, `${monthNames[+mo]} ${+y + 543}`);
+        }).join("");
+      
+        const categories = [...new Set(allPosts.map(p => p.category))].filter(Boolean);
+        $("categoryFilter").innerHTML += categories.map(c => createOption(c, c)).join("");
+      };
+      
+      const applyFilters = () => {
+        const search = $("searchInput").value.toLowerCase();
+        const start = $("startDate").value ? new Date($("startDate").value) : null;
+        const end = $("endDate").value ? new Date($("endDate").value) : null;
+        const month = $("monthFilter").value;
+        const cat = $("categoryFilter").value;
+        const status = $("updateStatus").value;
+      
+        const filtered = allPosts.filter(p => {
+          const date = parseThaiDate(p.date);
+          const text = `${p.title} ${p.detail}`.toLowerCase();
+      
+          return (!search || text.includes(search)) &&
+                 (!start || date >= start) &&
+                 (!end || date <= end) &&
+                 (!month || p.month === month) &&
+                 (!cat || p.category === cat) &&
+                 (status === "hasUpdate" ? p.detail : status === "noUpdate" ? !p.detail : true);
         });
-
-        allPosts.sort((a, b) => b.sortDate - a.sortDate);
-        fillDropdowns();
+      
+        renderPosts(filtered);
+      };
+      
+      const resetFilters = () => {
+        ["searchInput", "startDate", "endDate", "monthFilter", "categoryFilter", "updateStatus"]
+          .forEach(id => $(id).value = "");
         renderPosts(allPosts);
-        document.getElementById("loadingMessage").style.display = "none";
+      };
+      
+      const renderPosts = data => {
+        const body = $("postsTableBody");
+        body.innerHTML = data.length
+          ? data.map(p => `
+            <tr class="border-b hover:bg-gray-50">
+              <td class="px-6 py-3 text-sm">${formatThaiDate(p.date)}</td>
+              <td class="px-6 py-3 text-sm font-semibold">${p.title || '—'}</td>
+              <td class="px-6 py-3 text-sm text-gray-600">${p.detail?.replace(/\n/g, "<br>") || '—'}</td>
+            </tr>`).join("")
+          : `<tr><td colspan="3" class="text-center py-3 text-sm text-gray-500">ไม่พบข้อมูล</td></tr>`;
+      };
+      
+      // Load Data
+      fetch(sheetURL)
+        .then(res => res.text())
+        .then(text => {
+          const json = JSON.parse(text.substring(47).slice(0, -2));
+          allPosts = json.table.rows.map(row => {
+            const date = row.c[0]?.f || row.c[0]?.v || "";
+            return {
+              date,
+              title: row.c[1]?.v || "",
+              detail: row.c[2]?.v || "",
+              category: row.c[3]?.v || "",
+              month: extractMonth(date),
+              sortDate: parseThaiDate(date)
+            };
+          }).sort((a, b) => b.sortDate - a.sortDate);
+      
+          fillDropdowns();
+          renderPosts(allPosts);
+          $("loadingMessage").style.display = "none";
+        });
+      
+      $("searchInput").addEventListener("keypress", e => {
+        if (e.key === "Enter") applyFilters();
       });
-
-    document.getElementById("searchInput").addEventListener("keypress", e => {
-      if (e.key === "Enter") applyFilters();
-    });
   </script>
 </body>
 </html>
