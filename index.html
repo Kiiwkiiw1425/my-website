@@ -51,7 +51,7 @@
       </div>
     </div>
 
-    <!-- Month/Category Filters -->
+    <!-- Month and Update Status Filters -->
     <div class="flex flex-wrap gap-4 mb-6">
       <div class="w-auto">
         <label class="block text-sm font-semibold text-gray-700 mb-1">เลือกเดือน</label>
@@ -60,17 +60,7 @@
         </select>
       </div>
       <div class="w-auto">
-        <label class="block text-sm font-semibold text-gray-700 mb-1">เลือกหมวดหมู่</label>
-        <select id="categoryFilter" class="w-full border border-gray-300 rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="applyFilters()">
-          <option value="">ทุกหมวดหมู่</option>
-        </select>
-      </div>
-    </div>
-
-    <!-- Update Status Filter -->
-    <div class="flex flex-wrap gap-4 mb-6">
-      <div class="w-auto">
-        <label for="updateStatus" class="block text-sm font-semibold text-gray-700 mb-1 mr-2">เลือกสถานะอัปเดต:</label>
+        <label class="block text-sm font-semibold text-gray-700 mb-1">เลือกสถานะอัปเดต</label>
         <select id="updateStatus" class="w-full border border-gray-300 rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="applyFilters()">
           <option value="">ทุกวันที่มี/ไม่มีการอัปเดต</option>
           <option value="hasUpdate">วันที่มีการอัปเดต</option>
@@ -84,19 +74,8 @@
 
     <!-- Posts Section -->
     <div id="posts" class="overflow-x-auto">
-      <label class="block text-sm font-semibold text-gray-700 mb-1 mr-2">รายการอัปเดต</label>
-      <table class="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
-        <thead>
-          <tr>
-            <th class="resizable px-6 py-3 text-left text-sm font-medium text-gray-700 bg-gray-100" style="width:130px;">วันที่อัพเดท</th>
-            <th class="resizable px-6 py-3 text-left text-sm font-medium text-gray-700 bg-gray-100" style="width:295px;">หัวข้อ</th>
-            <th class="resizable px-6 py-3 text-left text-sm font-medium text-gray-700 bg-gray-100">รายละเอียด</th>
-          </tr>
-        </thead>
-        <tbody id="postsTableBody">
-          <!-- Dynamic posts will be inserted here -->
-        </tbody>
-      </table>
+    <label class="block text-sm font-semibold text-gray-700 mb-1 mr-2">รายการอัปเดต <span id="postCount" class="text-blue-600 font-medium"></span></label>
+        <table class="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm"></table>
     </div>
   </div>
 
@@ -181,23 +160,26 @@
     };
 
     const resetFilters = () => {
-      ["searchInput", "startDate", "endDate", "monthFilter", "categoryFilter", "updateStatus"]
+      ["searchInput", "startDate", "endDate", "monthFilter", "updateStatus"]
         .forEach(id => $(id).value = "");
       renderPosts(allPosts);
     };
 
-    const renderPosts = data => {
-      const body = $("postsTableBody");
-      body.innerHTML = data.length
-        ? data.map(p => `
-          <tr class="border-b hover:bg-gray-50">
-            <td class="px-6 py-3 text-sm">${formatThaiDate(p.date)}</td>
-            <td class="px-6 py-3 text-sm font-semibold">${p.title || '—'}</td>
-            <td class="px-6 py-3 text-sm text-gray-600">${p.detail?.replace(/\n/g, "<br>") || 'ไม่มีการอัปเดต'}</td>
-          </tr>`).join("")
-        : `<tr><td colspan="3" class="text-center py-3 text-sm text-gray-500">ไม่พบข้อมูล</td></tr>`;
-    };
-
+      const renderPosts = data => {
+        const body = $("postsTableBody");
+        const count = data.length;
+        $("postCount").textContent = `(${count} รายการ)`;
+      
+        body.innerHTML = count
+          ? data.map(p => `
+            <tr class="border-b hover:bg-gray-50">
+              <td class="px-6 py-3 text-sm">${formatThaiDate(p.date)}</td>
+              <td class="px-6 py-3 text-sm font-semibold">${p.title || '—'}</td>
+              <td class="px-6 py-3 text-sm text-gray-600">${p.detail?.replace(/\n/g, "<br>") || 'ไม่มีการอัปเดต'}</td>
+            </tr>`).join("")
+          : `<tr><td colspan="3" class="text-center py-3 text-sm text-gray-500">ไม่พบข้อมูล</td></tr>`;
+      };
+    
     // Load Data
     fetch(sheetURL)
       .then(res => res.text())
