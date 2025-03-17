@@ -162,18 +162,21 @@
       renderPosts(allPosts);
     };
 
-    const renderPosts = data => {
-      const body = $("postsTableBody");
-      body.innerHTML = data.length
-        ? data.map(p => `
-          <tr class="border-b hover:bg-gray-50">
-            <td class="px-6 py-3 text-sm">${formatThaiDate(p.date)}</td>
-            <td class="px-6 py-3 text-sm font-semibold">${p.title || '—'}</td>
-            <td class="px-6 py-3 text-sm text-gray-600">${p.detail?.replace(/\n/g, "<br>") || 'ไม่มีการอัปเดต'}</td>
-          </tr>`).join("")
-        : `<tr><td colspan="3" class="text-center py-3 text-sm text-gray-500">ไม่พบข้อมูล</td></tr>`;
-    };
+function renderPosts(data) {
+  const body = $("postsTableBody");
+  const count = data.length;
 
+  $("updateCount").textContent = `พบทั้งหมด ${count} รายการ`;
+
+  body.innerHTML = count
+    ? data.map(p => `
+        <tr class="border-b hover:bg-gray-50">
+          <td class="px-6 py-3 text-sm">${formatThaiDate(p.date)}</td>
+          <td class="px-6 py-3 text-sm font-semibold">${p.title || '—'}</td>
+          <td class="px-6 py-3 text-sm text-gray-600">${p.detail?.replace(/\n/g, "<br>") || 'ไม่มีการอัปเดต'}</td>
+        </tr>`).join("")
+    : `<tr><td colspan="3" class="text-center py-3 text-sm text-gray-500">ไม่พบข้อมูล</td></tr>`;
+}
     // Load Data
     fetch(sheetURL)
       .then(res => res.text())
