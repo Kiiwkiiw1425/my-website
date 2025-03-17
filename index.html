@@ -2,14 +2,13 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>📢 อัปเดตระบบ DPIS</title>
+  <title>📢 อัพเดตโปรแกรมประจำวัน</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
+    /* CSS for enabling resizable columns */
     .resizable {
       position: relative;
       user-select: none;
-      overflow: hidden;
     }
 
     .resizable .resizer {
@@ -22,20 +21,25 @@
       background-color: #ddd;
     }
 
-    th, td {
-      white-space: nowrap;
+    /* Set initial column widths */
+    .column-a {
+      width: 130px;
+    }
+    .column-b {
+      width: 295px;
     }
   </style>
 </head>
+
 <body class="bg-gray-50 text-gray-800 p-4">
 
   <div class="max-w-6xl mx-auto">
-    <h2 class="text-3xl font-semibold mb-6 text-left text-blue-600">📢 อัปเดตระบบ DPIS</h2>
+    <h2 class="text-3xl font-semibold mb-6 text-center text-blue-600">📢 อัปเดตโปรแกรมประจำวัน</h2>
 
     <!-- Filters Section -->
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-6">
       <div>
-        <label class="block text-sm font-semibold text-gray-700 mb-1">การค้นหา</label>
+        <label class="block text-sm font-semibold text-gray-700 mb-1">ค้นหา</label>
         <input id="searchInput" type="text" placeholder="ค้นหาคำ..." class="w-full border border-gray-300 rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
       </div>
       <div>
@@ -68,17 +72,13 @@
       </div>
     </div>
 
-    <!-- Loading Message -->
-    <div id="loadingMessage" class="text-center text-gray-500 mb-4">กำลังโหลดข้อมูล...</div>
-
     <!-- Posts Section (Table Display) -->
     <div id="posts" class="overflow-x-auto">
-    <label class="block text-sm font-semibold text-gray-700 mb-1">รายการอัปเดต</label>
       <table class="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
         <thead>
           <tr>
-            <th class="resizable px-6 py-3 text-left text-sm font-medium text-gray-700 bg-gray-100" style="width:130px;">วันที่อัพเดท</th>
-            <th class="resizable px-6 py-3 text-left text-sm font-medium text-gray-700 bg-gray-100" style="width:295px;">หัวข้อ</th>
+            <th class="resizable column-a px-6 py-3 text-left text-sm font-medium text-gray-700 bg-gray-100">วันที่</th>
+            <th class="resizable column-b px-6 py-3 text-left text-sm font-medium text-gray-700 bg-gray-100">หัวข้อ</th>
             <th class="resizable px-6 py-3 text-left text-sm font-medium text-gray-700 bg-gray-100">รายละเอียด</th>
           </tr>
         </thead>
@@ -90,7 +90,7 @@
   </div>
 
   <script>
-    // Resizable Columns
+    // Add resizer functionality
     document.querySelectorAll('.resizable').forEach(th => {
       const resizer = document.createElement('div');
       resizer.classList.add('resizer');
@@ -106,7 +106,7 @@
 
       function onMouseMove(e) {
         const newWidth = startWidth + (e.clientX - startX);
-        th.style.width = ${newWidth}px;
+        th.style.width = `${newWidth}px`;
       }
 
       function onMouseUp() {
@@ -125,7 +125,7 @@
       if (parts.length !== 3) return new Date("Invalid");
       let [day, month, year] = parts;
       year = parseInt(year) > 2500 ? parseInt(year) - 543 : year;
-      return new Date(${year}-${month}-${day});
+      return new Date(`${year}-${month}-${day}`);
     }
 
     function formatThaiDate(dateStr) {
@@ -134,13 +134,12 @@
       const day = date.getDate();
       const month = monthNames[date.getMonth() + 1];
       const year = date.getFullYear() + 543;
-      return ${day} ${month} ${year};
+      return `${day} ${month} ${year}`;
     }
 
     function extractMonth(dateStr) {
       const date = parseThaiDate(dateStr);
-      if (isNaN(date)) return "";
-      return ${date.getFullYear()}-${date.getMonth() + 1};
+      return `${date.getFullYear()}-${date.getMonth() + 1}`; // "2025-3"
     }
 
     function applyFilters() {
@@ -152,7 +151,7 @@
 
       const filtered = allPosts.filter(post => {
         const postDate = parseThaiDate(post.date);
-        const content = ${post.title} ${post.detail}.toLowerCase();
+        const content = `${post.title} ${post.detail}`.toLowerCase();
 
         let match = true;
         if (search && !content.includes(search)) match = false;
@@ -178,39 +177,35 @@
 
     function renderPosts(data) {
       const tableBody = document.getElementById("postsTableBody");
-      tableBody.innerHTML = data.length === 0
-        ? "<tr><td colspan='3' class='px-6 py-3 text-center text-sm text-gray-500'>ไม่พบข้อมูล</td></tr>"
-        : "";
-
+      tableBody.innerHTML = data.length === 0 ? "<tr><td colspan='3' class='px-6 py-3 text-center text-sm text-gray-500'>ไม่พบข้อมูล</td></tr>" : "";
       data.forEach(post => {
         const tr = document.createElement("tr");
         tr.className = "border-b border-gray-200 hover:bg-gray-50";
-        tr.innerHTML = 
+        tr.innerHTML = `
           <td class="px-6 py-3 text-sm text-gray-700">${formatThaiDate(post.date) || 'ข้อมูลไม่ครบถ้วน'}</td>
           <td class="px-6 py-3 text-sm font-semibold text-gray-800">${post.title || 'ข้อมูลไม่ครบถ้วน'}</td>
           <td class="px-6 py-3 text-sm text-gray-600">${post.detail ? post.detail.replace(/\n/g, "<br>") : 'ข้อมูลไม่ครบถ้วน'}</td>
-        ;
+        `;
         tableBody.appendChild(tr);
       });
     }
 
     function fillDropdowns() {
-      const months = [...new Set(allPosts.map(p => p.month))].filter(Boolean).sort().reverse();
+      const months = [...new Set(allPosts.map(p => p.month))].sort().reverse();
       const monthSelect = document.getElementById("monthFilter");
       months.forEach(m => {
         const [y, mo] = m.split('-');
-        const label = ${monthNames[parseInt(mo)]} ${parseInt(y) + 543};
-        monthSelect.innerHTML += <option value="${m}">${label}</option>;
+        const label = `${monthNames[parseInt(mo)]} ${parseInt(y) + 543}`;
+        monthSelect.innerHTML += `<option value="${m}">${label}</option>`;
       });
 
       const categories = [...new Set(allPosts.map(p => p.category))].filter(c => c);
       const catSelect = document.getElementById("categoryFilter");
       categories.forEach(c => {
-        catSelect.innerHTML += <option value="${c}">${c}</option>;
+        catSelect.innerHTML += `<option value="${c}">${c}</option>`;
       });
     }
 
-    // Load Data
     fetch(sheetURL)
       .then(res => res.text())
       .then(text => {
@@ -235,7 +230,6 @@
         allPosts.sort((a, b) => b.sortDate - a.sortDate);
         fillDropdowns();
         renderPosts(allPosts);
-        document.getElementById("loadingMessage").style.display = "none";
       });
 
     document.getElementById("searchInput").addEventListener("keypress", e => {
