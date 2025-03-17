@@ -60,11 +60,9 @@
         </select>
       </div>
       <div class="w-auto">
-        <label class="block text-sm font-semibold text-gray-700 mb-1">เลือกสถานะอัปเดต</label>
+        <label class="block text-sm font-semibold text-gray-700 mb-1">การอัปเดตล่าสุด</label>
         <select id="updateStatus" class="w-full border border-gray-300 rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="applyFilters()">
           <option value="">การอัปเดตล่าสุด</option>
-          <option value="hasUpdate">วันที่มีการอัปเดต</option>
-          <option value="noUpdate">วันที่ไม่มีการอัปเดต</option>
         </select>
       </div>
     </div>
@@ -142,27 +140,25 @@
     };
 
     const applyFilters = () => {
-        const search = $("searchInput").value.toLowerCase();
-        const start = $("startDate").value ? new Date($("startDate").value) : null;
-        const end = $("endDate").value ? new Date($("endDate").value) : null;
-        const month = $("monthFilter").value;
-        const status = $("updateStatus").value;
-    
-        const filtered = allPosts.filter(p => {
-          const date = parseThaiDate(p.date);
-          const text = `${p.title} ${p.detail}`.toLowerCase();
-    
-          // Filter by last 7 days
-          const sevenDaysAgo = new Date();
-          sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-          const isWithinLast7Days = date >= sevenDaysAgo;
-    
-          return (!search || text.includes(search)) &&
-                 (!start || date >= start) &&
-                 (!end || date <= end) &&
-                 (!month || p.month === month) &&
-                 (status === "hasUpdate" ? p.detail && isWithinLast7Days : status === "noUpdate" ? !p.detail : true);
-        });
+      const search = $("searchInput").value.toLowerCase();
+      const start = $("startDate").value ? new Date($("startDate").value) : null;
+      const end = $("endDate").value ? new Date($("endDate").value) : null;
+      const month = $("monthFilter").value;
+
+      // Calculate the date for 7 days ago
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+      const filtered = allPosts.filter(p => {
+        const date = parseThaiDate(p.date);
+        const text = `${p.title} ${p.detail}`.toLowerCase();
+
+        return (!search || text.includes(search)) &&
+               (!start || date >= start) &&
+               (!end || date <= end) &&
+               (!month || p.month === month) &&
+               date >= sevenDaysAgo; // Filter for updates from the last 7 days
+      });
 
       renderPosts(filtered);
     };
