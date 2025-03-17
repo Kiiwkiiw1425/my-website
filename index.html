@@ -103,7 +103,7 @@
 
       function onMouseMove(e) {
         const newWidth = startWidth + (e.clientX - startX);
-        th.style.width = ${newWidth}px;
+        th.style.width = `${newWidth}px`;
       }
 
       function onMouseUp() {
@@ -121,23 +121,23 @@
       const [d, m, y] = str.split('/');
       if (!d || !m || !y) return new Date("Invalid");
       const year = +y > 2500 ? +y - 543 : +y;
-      return new Date(${year}-${m}-${d});
+      return new Date(`${year}-${m}-${d}`);
     };
     const formatThaiDate = str => {
       const d = parseThaiDate(str);
       if (isNaN(d)) return str;
-      return ${d.getDate()} ${monthNames[d.getMonth() + 1]} ${d.getFullYear() + 543};
+      return `${d.getDate()} ${monthNames[d.getMonth() + 1]} ${d.getFullYear() + 543}`;
     };
     const extractMonth = str => {
       const d = parseThaiDate(str);
-      return isNaN(d) ? "" : ${d.getFullYear()}-${d.getMonth() + 1};
+      return isNaN(d) ? "" : `${d.getFullYear()}-${d.getMonth() + 1}`;
     };
-    const createOption = (value, label) => <option value="${value}">${label}</option>;
+    const createOption = (value, label) => `<option value="${value}">${label}</option>`;
     const fillDropdowns = () => {
       const months = [...new Set(allPosts.map(p => p.month))].filter(Boolean).sort().reverse();
       $("monthFilter").innerHTML += months.map(m => {
         const [y, mo] = m.split("-");
-        return createOption(m, ${monthNames[+mo]} ${+y + 543});
+        return createOption(m, `${monthNames[+mo]} ${+y + 543}`);
       }).join("");
     };
 
@@ -150,7 +150,7 @@
 
       const filtered = allPosts.filter(p => {
         const date = parseThaiDate(p.date);
-        const text = ${p.title} ${p.detail}.toLowerCase();
+        const text = `${p.title} ${p.detail}`.toLowerCase();
 
         return (!search || text.includes(search)) &&
                (!start || date >= start) &&
@@ -171,17 +171,17 @@
     const renderPosts = data => {
       const body = $("postsTableBody");
       const count = data.length;
-      $("postCount").textContent = (${count} รายการ);
+      $("postCount").textContent = `(${count} รายการ)`;
 
       body.innerHTML = count
         ? data.map(p =>
-            <tr class="border-b hover:bg-gray-50">
+            `<tr class="border-b hover:bg-gray-50">
               <td class="px-6 py-3 text-sm">${formatThaiDate(p.date)}</td>
               <td class="px-6 py-3 text-sm font-semibold">${p.title || '—'}</td>
               <td class="px-6 py-3 text-sm text-gray-600">${(p.detail || 'ไม่มีการอัปเดต').replace(/\n/g, "<br>")}</td>
-            </tr>
+            </tr>`
           ).join("")
-        : <tr><td colspan="3" class="text-center py-3 text-sm text-gray-500">ไม่พบข้อมูล</td></tr>;
+        : `<tr><td colspan="3" class="text-center py-3 text-sm text-gray-500">ไม่พบข้อมูล</td></tr>`;
     };
 
     fetch(sheetURL)
