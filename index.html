@@ -136,8 +136,7 @@
 
     function extractMonth(dateStr) {
       const date = parseThaiDate(dateStr);
-      if (isNaN(date)) return "";
-      return `${date.getFullYear()}-${date.getMonth() + 1}`;
+      return `${date.getFullYear()}-${date.getMonth() + 1}`; // "2025-3"
     }
 
     function applyFilters() {
@@ -146,69 +145,50 @@
       const end = document.getElementById("endDate").value;
       const monthVal = document.getElementById("monthFilter").value;
       const catVal = document.getElementById("categoryFilter").value;
-    
+
       const filtered = allPosts.filter(post => {
-        if (!post.detail) return false; // ตัดรายการที่ไม่มีรายละเอียดออก
-    
         const postDate = parseThaiDate(post.date);
         const content = `${post.title} ${post.detail}`.toLowerCase();
+
         let match = true;
-    
         if (search && !content.includes(search)) match = false;
         if (start && postDate < new Date(start)) match = false;
         if (end && postDate > new Date(end)) match = false;
         if (monthVal && post.month !== monthVal) match = false;
         if (catVal && post.category !== catVal) match = false;
-    
+
         return match;
       });
-    
+
       renderPosts(filtered);
     }
 
-        function resetFilters() {
-          document.getElementById("searchInput").value = "";
-          document.getElementById("startDate").value = "";
-          document.getElementById("endDate").value = "";
-          document.getElementById("monthFilter").value = "";
-          document.getElementById("categoryFilter").value = "";
-          document.getElementById("updateCount").innerText = "";
-          document.getElementById("updateStatus").innerText = "";
-          renderPosts(allPosts.filter(p => p.detail)); // แสดงเฉพาะโพสต์ที่มีรายละเอียด
-        }
+    function resetFilters() {
+      document.getElementById("searchInput").value = "";
+      document.getElementById("startDate").value = "";
+      document.getElementById("endDate").value = "";
+      document.getElementById("monthFilter").value = "";
+      document.getElementById("categoryFilter").value = "";
+      renderPosts(allPosts);
+    }
 
-          function renderPosts(data) {
-            const tableBody = document.getElementById("postsTableBody");
-            const postsSection = document.getElementById("posts");
-          
-            tableBody.innerHTML = data.length === 0
-              ? "<tr><td colspan='3' class='px-6 py-3 text-center text-sm text-gray-500'>ไม่พบข้อมูล</td></tr>"
-              : "";
-          
-            data.forEach(post => {
-              const tr = document.createElement("tr");
-              tr.className = "border-b border-gray-200 hover:bg-gray-50";
-              tr.innerHTML = `
-                <td class="px-6 py-3 text-sm text-gray-700">${formatThaiDate(post.date) || 'ข้อมูลไม่ครบถ้วน'}</td>
-                <td class="px-6 py-3 text-sm font-semibold text-gray-800">${post.title || 'ข้อมูลไม่ครบถ้วน'}</td>
-                <td class="px-6 py-3 text-sm text-gray-600">${post.detail ? post.detail.replace(/\n/g, "<br>") : 'ข้อมูลไม่ครบถ้วน'}</td>
-              `;
-              tableBody.appendChild(tr);
-            });
-          
-            // เพิ่มจำนวนรายการด้านหลังหัวข้อ "รายการอัปเดต"
-            const label = postsSection.querySelector("label");
-            if (label) {
-              label.innerText = `รายการอัปเดต (${data.length} รายการ)`;
-            }
-          }
+    function renderPosts(data) {
+      const tableBody = document.getElementById("postsTableBody");
+      tableBody.innerHTML = data.length === 0 ? "<tr><td colspan='3' class='px-6 py-3 text-center text-sm text-gray-500'>ไม่พบข้อมูล</td></tr>" : "";
+      data.forEach(post => {
+        const tr = document.createElement("tr");
+        tr.className = "border-b border-gray-200 hover:bg-gray-50";
+        tr.innerHTML = `
+          <td class="px-6 py-3 text-sm text-gray-700">${formatThaiDate(post.date) || 'ข้อมูลไม่ครบถ้วน'}</td>
+          <td class="px-6 py-3 text-sm font-semibold text-gray-800">${post.title || 'ข้อมูลไม่ครบถ้วน'}</td>
+          <td class="px-6 py-3 text-sm text-gray-600">${post.detail ? post.detail.replace(/\n/g, "<br>") : 'ข้อมูลไม่ครบถ้วน'}</td>
+        `;
+        tableBody.appendChild(tr);
+      });
+    }
 
     function fillDropdowns() {
-      const months = [...new Set(allPosts.map(p => p.month))].filter(Boolean).sort((a, b) => {
-        const [yA, mA] = a.split('-');
-        const [yB, mB] = b.split('-');
-        return (yB - yA) || (mB - mA);
-      });
+      const months = [...new Set(allPosts.map(p => p.month))].sort().reverse();
       const monthSelect = document.getElementById("monthFilter");
       months.forEach(m => {
         const [y, mo] = m.split('-');
@@ -223,39 +203,6 @@
       });
     }
 
-      function applyUpdateStatus() {
-        const updateStatus = document.getElementById("updateStatus").value;
-        let filtered = [];
-      
-        if (updateStatus === "latest") {
-          const today = new Date();
-          const threeDaysAgo = new Date(today);
-          threeDaysAgo.setDate(today.getDate() - 3);
-      
-          filtered = allPosts.filter(p => {
-            const date = parseThaiDate(p.date);
-            return date >= threeDaysAgo && date <= today && p.detail && !p.detail.includes("ไม่มีอัปเดต");
-          });
-      
-        } else if (updateStatus === "hasUpdate") {
-          filtered = allPosts.filter(p => p.detail && !p.detail.includes("ไม่มีอัปเดต"));
-      
-        } else if (updateStatus === "noUpdate") {
-          filtered = allPosts.filter(p => p.detail && p.detail.includes("ไม่มีอัปเดต"));
-      
-        } else {
-          // หากไม่ได้เลือกอะไร
-          filtered = allPosts.filter(p => p.detail);
-        }
-      
-        renderPosts(filtered);
-      
-
-      
-        document.getElementById("updateCount").innerText = countText + latestText;
-      }
-
-    // Load Data
     fetch(sheetURL)
       .then(res => res.text())
       .then(text => {
@@ -275,12 +222,11 @@
             month: extractMonth(rawDate),
             sortDate: parseThaiDate(rawDate)
           };
-        }).filter(p => p.detail); // กรองเฉพาะที่มีรายละเอียด
-        
+        });
+
         allPosts.sort((a, b) => b.sortDate - a.sortDate);
         fillDropdowns();
         renderPosts(allPosts);
-        document.getElementById("loadingMessage").style.display = "none";
       });
 
     document.getElementById("searchInput").addEventListener("keypress", e => {
