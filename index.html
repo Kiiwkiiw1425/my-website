@@ -161,9 +161,9 @@
 
       // Filter based on the selected update status
       if (status === "lastUpdate") {
-        filtered = filtered.filter((_, index) => index < 5 && p.detail); // Only the last 5 with updates
+        filtered = filtered.filter((p, index) => index < 5 && p.detail); // Only the last 5 with updates
       } else if (status === "hasUpdate") {
-        filtered = filtered.filter(p => p.detail); // Only posts with updates
+        filtered = filtered.filter(p => p.detail && p.detail !== "ไม่มีอัปเดต"); // Only posts with updates
       } else if (status === "noUpdate") {
         filtered = filtered.filter(p => p.detail === "ไม่มีอัปเดต"); // Only posts with "ไม่มีอัปเดต"
       }
@@ -210,7 +210,8 @@
         }).sort((a, b) => b.sortDate - a.sortDate);
 
         fillDropdowns();
-        renderPosts(allPosts);
+        // Show all posts with updates on page load
+        renderPosts(allPosts.filter(p => p.detail && p.detail !== "ไม่มีอัปเดต"));
         $("loadingMessage").style.display = "none";
       });
 
