@@ -172,9 +172,15 @@
     };
 
     const resetFilters = () => {
-      ["searchInput", "startDate", "endDate", "monthFilter", "updateStatus"]
-        .forEach(id => $(id).value = "");
-      renderPosts(allPosts);
+      // Reset all filters to their initial state (empty values)
+      $("searchInput").value = "";
+      $("startDate").value = "";
+      $("endDate").value = "";
+      $("monthFilter").value = "";
+      $("updateStatus").value = "";
+
+      // Render posts again with only the ones that have updates
+      renderPosts(allPosts.filter(p => p.detail && p.detail !== "ไม่มีอัปเดต"));
     };
 
     const renderPosts = data => {
