@@ -147,7 +147,6 @@
       const end = $("endDate").value ? new Date($("endDate").value) : null;
       const month = $("monthFilter").value;
       const status = $("updateStatus").value;
-      const status = $("lastUpdate").value;
 
       const filtered = allPosts.filter(p => {
         const date = parseThaiDate(p.date);
@@ -158,8 +157,7 @@
                (!end || date <= end) &&
                (!month || p.month === month) &&
                (status === "hasUpdate" ? p.detail && p.detail !== "ไม่มีอัปเดต" : 
-                status === "noUpdate" ? p.detail === "ไม่มีอัปเดต" :
-                status === "lastUpdate" ? p.detail === "ไม่มีอัปเดต" :true);
+                status === "noUpdate" ? p.detail === "ไม่มีอัปเดต" : true);
       }).slice(0, 5);  // Show only the 5 latest updates if "อัปเดตล่าสุด" is selected.
 
       renderPosts(filtered);
