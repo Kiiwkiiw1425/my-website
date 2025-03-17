@@ -69,32 +69,7 @@
     </div>
   </div>
 
-  <script>
-    
-    // Resizable Columns
-    document.querySelectorAll('.resizable').forEach(th => {
-      const resizer = document.createElement('div');
-      resizer.classList.add('resizer');
-      th.appendChild(resizer);
-      let startX, startWidth;
-
-      resizer.addEventListener('mousedown', e => {
-        startX = e.clientX;
-        startWidth = th.offsetWidth;
-        document.addEventListener('mousemove', onMouseMove);
-        document.addEventListener('mouseup', onMouseUp);
-      });
-
-      function onMouseMove(e) {
-        const newWidth = startWidth + (e.clientX - startX);
-        th.style.width = `${newWidth}px`;
-      }
-
-      function onMouseUp() {
-        document.removeEventListener('mousemove', onMouseMove);
-        document.removeEventListener('mouseup', onMouseUp);
-      }
-    });
+  <script>  
     
     const sheetURL = "https://docs.google.com/spreadsheets/d/1xRqnFHRWL3l_-6-LNJ_LM5Bejiv0aV5JwcV9PtzC-Nk/gviz/tq?tqx=out:json";
     let allPosts = [];
