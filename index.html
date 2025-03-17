@@ -55,17 +55,16 @@
     <div class="flex flex-wrap gap-4 mb-6">
       <div class="w-auto">
         <label class="block text-sm font-semibold text-gray-700 mb-1">เลือกเดือน</label>
-        <select id="monthFilter" class="w-full border border-gray-300 rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="applyFilters()">
+        <select id="monthFilter" class="w-full border border-gray-300 rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="applyFilters()" disabled>
+          <!-- "ทุกเดือน" ถูก disabled ไม่ให้เลือก -->
           <option value="">ทุกเดือน</option>
         </select>
       </div>
       <div class="w-auto">
         <label class="block text-sm font-semibold text-gray-700 mb-1">เลือกสถานะอัปเดต</label>
-        <select id="updateStatus" class="w-full border border-gray-300 rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="applyFilters()">
+        <select id="updateStatus" class="w-full border border-gray-300 rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" disabled>
+          <!-- ปิดการเลือกสถานะ -->
           <option value="">เลือกสถานะอัปเดต</option>
-          <option value="lastUpdate">อัปเดตล่าสุด</option>
-          <option value="hasUpdate">วันที่มีการอัปเดต</option>
-          <option value="noUpdate">วันที่ไม่มีการอัปเดต</option>
         </select>
       </div>
     </div>
@@ -151,79 +150,4 @@
 
       let filtered = allPosts.filter(p => {
         const date = parseThaiDate(p.date);
-        const text = `${p.title} ${p.detail}`.toLowerCase();
-
-        return (!search || text.includes(search)) &&
-               (!start || date >= start) &&
-               (!end || date <= end) &&
-               (!month || p.month === month);
-      });
-
-      // Filter based on the selected update status
-      if (status === "lastUpdate") {
-        filtered = filtered.filter((p, index) => index < 5 && p.detail); // Only the last 5 with updates
-      } else if (status === "hasUpdate") {
-        filtered = filtered.filter(p => p.detail && p.detail !== "ไม่มีอัปเดต"); // Only posts with updates
-      } else if (status === "noUpdate") {
-        filtered = filtered.filter(p => p.detail === "ไม่มีอัปเดต"); // Only posts with "ไม่มีอัปเดต"
-      }
-
-      renderPosts(filtered);
-    };
-
-    const resetFilters = () => {
-      // Reset all filters to their initial state (empty values)
-      $("searchInput").value = "";
-      $("startDate").value = "";
-      $("endDate").value = "";
-      $("monthFilter").value = "";
-      $("updateStatus").value = "";
-
-      // Render posts again with only the ones that have updates
-      renderPosts(allPosts.filter(p => p.detail && p.detail !== "ไม่มีอัปเดต"));
-    };
-
-    const renderPosts = data => {
-      const body = $("postsTableBody");
-      const count = data.length;
-      $("postCount").textContent = `(${count} รายการ)`;
-
-      body.innerHTML = count
-        ? data.map(p => `
-          <tr class="border-b hover:bg-gray-50">
-            <td class="px-6 py-3 text-sm">${formatThaiDate(p.date)}</td>
-            <td class="px-6 py-3 text-sm font-semibold">${p.title || '—'}</td>
-            <td class="px-6 py-3 text-sm text-gray-600">${p.detail?.replace(/\n/g, "<br>") || 'ไม่มีการอัปเดต'}</td>
-          </tr>`).join("")
-        : `<tr><td colspan="3" class="text-center py-3 text-sm text-gray-500">ไม่พบข้อมูล</td></tr>`;
-    };
-
-    // Load Data
-    fetch(sheetURL)
-      .then(res => res.text())
-      .then(text => {
-        const json = JSON.parse(text.substring(47).slice(0, -2));
-        allPosts = json.table.rows.map(row => {
-          const date = row.c[0]?.f || row.c[0]?.v || "";
-          return {
-            date,
-            title: row.c[1]?.v || "",
-            detail: row.c[2]?.v || "",
-            category: row.c[3]?.v || "",
-            month: extractMonth(date),
-            sortDate: parseThaiDate(date)
-          };
-        }).sort((a, b) => b.sortDate - a.sortDate);
-
-        fillDropdowns();
-        // Show all posts with updates on page load
-        renderPosts(allPosts.filter(p => p.detail && p.detail !== "ไม่มีอัปเดต"));
-        $("loadingMessage").style.display = "none";
-      });
-
-    $("searchInput").addEventListener("keypress", e => {
-      if (e.key === "Enter") applyFilters();
-    });
-  </script>
-</body>
-</html>
+        const text = `${p
