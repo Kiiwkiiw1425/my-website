@@ -101,6 +101,30 @@
   </div>
 
   <script>
+    // Resizable Columns
+    document.querySelectorAll('.resizable').forEach(th => {
+      const resizer = document.createElement('div');
+      resizer.classList.add('resizer');
+      th.appendChild(resizer);
+      let startX, startWidth;
+
+      resizer.addEventListener('mousedown', e => {
+        startX = e.clientX;
+        startWidth = th.offsetWidth;
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+      });
+
+      function onMouseMove(e) {
+        const newWidth = startWidth + (e.clientX - startX);
+        th.style.width = `${newWidth}px`;
+      }
+
+      function onMouseUp() {
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+      }
+    });
 
     const sheetURL = "https://docs.google.com/spreadsheets/d/1xRqnFHRWL3l_-6-LNJ_LM5Bejiv0aV5JwcV9PtzC-Nk/gviz/tq?tqx=out:json";
     const monthNames = ["", "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
@@ -162,21 +186,18 @@
       renderPosts(allPosts);
     };
 
-function renderPosts(data) {
-  const body = $("postsTableBody");
-  const count = data.length;
+    const renderPosts = data => {
+      const body = $("postsTableBody");
+      body.innerHTML = data.length
+        ? data.map(p => `
+          <tr class="border-b hover:bg-gray-50">
+            <td class="px-6 py-3 text-sm">${formatThaiDate(p.date)}</td>
+            <td class="px-6 py-3 text-sm font-semibold">${p.title || '—'}</td>
+            <td class="px-6 py-3 text-sm text-gray-600">${p.detail?.replace(/\n/g, "<br>") || 'ไม่มีการอัปเดต'}</td>
+          </tr>`).join("")
+        : `<tr><td colspan="3" class="text-center py-3 text-sm text-gray-500">ไม่พบข้อมูล</td></tr>`;
+    };
 
-  $("updateCount").textContent = `พบทั้งหมด ${count} รายการ`;
-
-  body.innerHTML = count
-    ? data.map(p => `
-        <tr class="border-b hover:bg-gray-50">
-          <td class="px-6 py-3 text-sm">${formatThaiDate(p.date)}</td>
-          <td class="px-6 py-3 text-sm font-semibold">${p.title || '—'}</td>
-          <td class="px-6 py-3 text-sm text-gray-600">${p.detail?.replace(/\n/g, "<br>") || 'ไม่มีการอัปเดต'}</td>
-        </tr>`).join("")
-    : `<tr><td colspan="3" class="text-center py-3 text-sm text-gray-500">ไม่พบข้อมูล</td></tr>`;
-}
     // Load Data
     fetch(sheetURL)
       .then(res => res.text())
