@@ -112,12 +112,7 @@
       const hasUpdate = allPosts.filter(p => p.detail && p.detail !== "ไม่มีอัปเดต");
       const noUpdate = allPosts.filter(p => p.detail === "ไม่มีอัปเดต");
 
-      $("updateStatus").innerHTML = `
-        <option value="">เลือกสถานะ</option>
-        <option value="lastUpdate">อัปเดตล่าสุด (${lastUpdate.length})</option>
-        <option value="hasUpdate">วันที่มีการอัปเดต (${hasUpdate.length})</option>
-        <option value="noUpdate">วันที่ไม่มีการอัปเดต (${noUpdate.length})</option>
-      `;
+
     };
 
     const applyFilters = () => {
