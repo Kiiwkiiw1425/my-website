@@ -62,14 +62,12 @@
       <div class="w-auto">
         <label class="block text-sm font-semibold text-gray-700 mb-1">เลือกสถานะอัปเดต</label>
         <select id="updateStatus" class="w-full border border-gray-300 rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="applyFilters()">
-          <option value="lastUpdate">อัปเดตล่าสุด</option>
-          <option value="hasUpdate">วันที่มีการอัปเดต</option>
-          <option value="noUpdate">วันที่ไม่มีการอัปเดต</option>
+          <option value="">-- เลือกสถานะ --</option>
         </select>
       </div>
     </div>
 
-    <!-- Loading Message -->
+    <!-- ✅ Loading Message -->
     <div id="loadingMessage" class="text-center text-gray-500 mb-4">กำลังโหลดข้อมูล...</div>
 
     <!-- Posts Section -->
@@ -82,56 +80,35 @@
   </div>
 
   <script>
-    // Resizable Columns
-    document.querySelectorAll('.resizable').forEach(th => {
-      const resizer = document.createElement('div');
-      resizer.classList.add('resizer');
-      th.appendChild(resizer);
-      let startX, startWidth;
-
-      resizer.addEventListener('mousedown', e => {
-        startX = e.clientX;
-        startWidth = th.offsetWidth;
-        document.addEventListener('mousemove', onMouseMove);
-        document.addEventListener('mouseup', onMouseUp);
-      });
-
-      function onMouseMove(e) {
-        const newWidth = startWidth + (e.clientX - startX);
-        th.style.width = `${newWidth}px`;
-      }
-
-      function onMouseUp() {
-        document.removeEventListener('mousemove', onMouseMove);
-        document.removeEventListener('mouseup', onMouseUp);
-      }
-    });
-
+    // Utility functions
+    const $ = id => document.getElementById(id);
     const sheetURL = "https://docs.google.com/spreadsheets/d/1xRqnFHRWL3l_-6-LNJ_LM5Bejiv0aV5JwcV9PtzC-Nk/gviz/tq?tqx=out:json";
     const monthNames = ["", "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+
     let allPosts = [];
 
-    const $ = id => document.getElementById(id);
     const parseThaiDate = str => {
       const [d, m, y] = str.split('/');
       if (!d || !m || !y) return new Date("Invalid");
       const year = +y > 2500 ? +y - 543 : +y;
       return new Date(`${year}-${m}-${d}`);
     };
+
     const formatThaiDate = str => {
       const d = parseThaiDate(str);
       if (isNaN(d)) return str;
       return `${d.getDate()} ${monthNames[d.getMonth() + 1]} ${d.getFullYear() + 543}`;
     };
+
     const extractMonth = str => {
       const d = parseThaiDate(str);
       return isNaN(d) ? "" : `${d.getFullYear()}-${d.getMonth() + 1}`;
     };
+
     const getCurrentMonth = () => {
       const today = new Date();
       return `${today.getFullYear()}-${today.getMonth() + 1}`;
     };
-    const createOption = (value, text) => `<option value="${value}">${text}</option>`;
 
     const fillDropdowns = () => {
       const months = [...new Set(allPosts.map(p => p.month))].filter(Boolean).sort((a, b) => {
@@ -142,8 +119,22 @@
 
       $("monthFilter").innerHTML = `<option value="">ทุกเดือน</option>` + months.map(m => {
         const [y, mo] = m.split("-");
-        return createOption(m, `${monthNames[+mo]} ${+y + 543}`);
+        return `<option value="${m}">${monthNames[+mo]} ${+y + 543}</option>`;
       }).join("");
+    };
+
+    const updateStatusDropdown = () => {
+      const currentMonth = getCurrentMonth();
+      const lastUpdate = allPosts.filter(p => p.month === currentMonth && p.detail && p.detail !== "ไม่มีอัปเดต").slice(0, 7);
+      const hasUpdate = allPosts.filter(p => p.detail && p.detail !== "ไม่มีอัปเดต");
+      const noUpdate = allPosts.filter(p => p.detail === "ไม่มีอัปเดต");
+
+      $("updateStatus").innerHTML = `
+        <option value="">-- เลือกสถานะ --</option>
+        <option value="lastUpdate">อัปเดตล่าสุด (${lastUpdate.length})</option>
+        <option value="hasUpdate">วันที่มีการอัปเดต (${hasUpdate.length})</option>
+        <option value="noUpdate">วันที่ไม่มีการอัปเดต (${noUpdate.length})</option>
+      `;
     };
 
     const applyFilters = () => {
@@ -156,7 +147,6 @@
       let filtered = allPosts.filter(p => {
         const date = parseThaiDate(p.date);
         const text = `${p.title} ${p.detail}`.toLowerCase();
-
         return (!search || text.includes(search)) &&
                (!start || date >= start) &&
                (!end || date <= end) &&
@@ -191,16 +181,15 @@
 
     const renderPosts = data => {
       const body = $("postsTableBody");
-      const count = data.length;
-      $("postCount").textContent = `(${count} รายการ)`;
+      $("postCount").textContent = `(${data.length} รายการ)`;
 
-      body.innerHTML = count
+      body.innerHTML = data.length
         ? data.map(p => `
-          <tr class="border-b hover:bg-gray-50">
-            <td class="px-6 py-3 text-sm">${formatThaiDate(p.date)}</td>
-            <td class="px-6 py-3 text-sm font-semibold">${p.title || '—'}</td>
-            <td class="px-6 py-3 text-sm text-gray-600">${p.detail?.replace(/\n/g, "<br>") || 'ไม่พบข้อมูล'}</td>
-          </tr>`).join("")
+            <tr class="border-b hover:bg-gray-50">
+              <td class="px-6 py-3 text-sm">${formatThaiDate(p.date)}</td>
+              <td class="px-6 py-3 text-sm font-semibold">${p.title || '—'}</td>
+              <td class="px-6 py-3 text-sm text-gray-600">${p.detail?.replace(/\n/g, "<br>") || 'ไม่พบข้อมูล'}</td>
+            </tr>`).join("")
         : `<tr><td colspan="3" class="text-center py-3 text-sm text-gray-500">ไม่พบข้อมูล</td></tr>`;
     };
 
@@ -222,6 +211,7 @@
         }).sort((a, b) => b.sortDate - a.sortDate);
 
         fillDropdowns();
+        updateStatusDropdown();
         renderPosts(allPosts.filter(p => p.detail && p.detail !== "ไม่มีอัปเดต"));
         $("loadingMessage").style.display = "none";
       });
