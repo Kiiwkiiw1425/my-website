@@ -157,12 +157,12 @@
       $("endDate").value = "";
       $("monthFilter").value = "";
       $("updateStatus").value = ""; 
-      
-
 
       const currentMonth = getCurrentMonth();
       const filtered = allPosts.filter(p => p.month === currentMonth && p.detail && p.detail !== "ไม่มีอัปเดต");
       renderPosts(filtered);
+
+      applyFilters();
     };
     
     const renderPosts = data => {
