@@ -114,9 +114,9 @@
 
       $("updateStatus").innerHTML = `
         <option value="">เลือกสถานะ</option>
-        <option value="lastUpdate">อัปเดตล่าสุด (${lastUpdate.length})</option>
-        <option value="hasUpdate">วันที่มีการอัปเดต (${hasUpdate.length})</option>
-        <option value="noUpdate">วันที่ไม่มีการอัปเดต (${noUpdate.length})</option>
+        <option value="lastUpdate">อัปเดตล่าสุด</option>
+        <option value="hasUpdate">วันที่มีการอัปเดต</option>
+        <option value="noUpdate">วันที่ไม่มีการอัปเดต</option>
       `;
     };
 
@@ -156,7 +156,7 @@
       $("startDate").value = "";
       $("endDate").value = "";
       $("monthFilter").value = "";
-      $("updateStatus").value = "hasUpdate"; 
+      $("updateStatus").value = ""; 
       
       applyFilters();
 
@@ -199,7 +199,7 @@
           updateStatusDropdown();
           
           // ✅ ตั้งค่า default ให้แสดงรายการที่มีการอัปเดตในเดือนปัจจุบัน
-          $("updateStatus").value = "hasUpdate";
+          $("updateStatus").value = "";
           $("monthFilter").value = getCurrentMonth();
           applyFilters();
       
