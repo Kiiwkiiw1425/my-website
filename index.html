@@ -69,7 +69,7 @@
       </div>
     </div>
 
-    <!-- ✅ Loading Message (แยกออกมา) -->
+    <!-- Loading Message -->
     <div id="loadingMessage" class="text-center text-gray-500 mb-4">กำลังโหลดข้อมูล...</div>
 
     <!-- Posts Section -->
@@ -127,20 +127,24 @@
       const d = parseThaiDate(str);
       return isNaN(d) ? "" : `${d.getFullYear()}-${d.getMonth() + 1}`;
     };
-    const createOption = (value, label) => `<option value="${value}">${label}</option>`;
+    const getCurrentMonth = () => {
+      const today = new Date();
+      return `${today.getFullYear()}-${today.getMonth() + 1}`;
+    };
+    const createOption = (value, text) => `<option value="${value}">${text}</option>`;
+
     const fillDropdowns = () => {
       const months = [...new Set(allPosts.map(p => p.month))].filter(Boolean).sort((a, b) => {
-        const [yearA, monthA] = a.split("-");
-        const [yearB, monthB] = b.split("-");
-        return yearB - yearA || monthB - monthA; // แก้ตรงนี้
+        const [yA, mA] = a.split("-").map(Number);
+        const [yB, mB] = b.split("-").map(Number);
+        return yA - yB || mA - mB;
       });
-    
-      $("monthFilter").innerHTML += months.map(m => {
+
+      $("monthFilter").innerHTML = `<option value="">ทุกเดือน</option>` + months.map(m => {
         const [y, mo] = m.split("-");
         return createOption(m, `${monthNames[+mo]} ${+y + 543}`);
       }).join("");
     };
-
 
     const applyFilters = () => {
       const search = $("searchInput").value.toLowerCase();
@@ -159,28 +163,30 @@
                (!month || p.month === month);
       });
 
-      // Filter based on the selected update status
       if (status === "lastUpdate") {
-        filtered = filtered.filter((p, index) => index < 5 && p.detail); // Only the last 5 with updates
+        const currentMonth = getCurrentMonth();
+        filtered = allPosts
+          .filter(p => p.month === currentMonth && p.detail && p.detail !== "ไม่มีอัปเดต")
+          .slice(0, 7);
       } else if (status === "hasUpdate") {
-        filtered = filtered.filter(p => p.detail && p.detail !== "ไม่มีอัปเดต"); // Only posts with updates
+        filtered = filtered.filter(p => p.detail && p.detail !== "ไม่มีอัปเดต");
       } else if (status === "noUpdate") {
-        filtered = filtered.filter(p => p.detail === "ไม่มีอัปเดต"); // Only posts with "ไม่มีอัปเดต"
+        filtered = filtered.filter(p => p.detail === "ไม่มีอัปเดต");
       }
 
       renderPosts(filtered);
     };
 
     const resetFilters = () => {
-      // Reset all filters to their initial state (empty values)
       $("searchInput").value = "";
       $("startDate").value = "";
       $("endDate").value = "";
       $("monthFilter").value = "";
       $("updateStatus").value = "";
 
-      // Render posts again with only the ones that have updates
-      renderPosts(allPosts.filter(p => p.detail && p.detail !== "ไม่มีอัปเดต"));
+      const currentMonth = getCurrentMonth();
+      const filtered = allPosts.filter(p => p.month === currentMonth && p.detail && p.detail !== "ไม่มีอัปเดต");
+      renderPosts(filtered);
     };
 
     const renderPosts = data => {
@@ -216,7 +222,6 @@
         }).sort((a, b) => b.sortDate - a.sortDate);
 
         fillDropdowns();
-        // Show all posts with updates on page load
         renderPosts(allPosts.filter(p => p.detail && p.detail !== "ไม่มีอัปเดต"));
         $("loadingMessage").style.display = "none";
       });
