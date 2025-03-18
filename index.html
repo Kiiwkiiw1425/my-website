@@ -6,25 +6,9 @@
   <title>📢 อัปเดตระบบ DPIS</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    .resizable {
-      position: relative;
-      user-select: none;
-      overflow: hidden;
-    }
-
-    .resizable .resizer {
-      position: absolute;
-      top: 0;
-      right: 0;
-      width: 5px;
-      height: 100%;
-      cursor: ew-resize;
-      background-color: #ddd;
-    }
-
-    th, td {
-      white-space: nowrap;
-    }
+    .resizable { position: relative; user-select: none; overflow: hidden; }
+    .resizable .resizer { position: absolute; top: 0; right: 0; width: 5px; height: 100%; cursor: ew-resize; background-color: #ddd; }
+    th, td { white-space: nowrap; }
   </style>
 </head>
 <body class="bg-gray-50 text-gray-800 p-4">
@@ -56,21 +40,21 @@
       <div class="w-auto">
         <label class="block text-sm font-semibold text-gray-700 mb-1">เลือกเดือน</label>
         <select id="monthFilter" class="w-full border border-gray-300 rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="applyFilters()">
-          <option value="">-- ทุกเดือน --</option>
+          <option value="">ทุกเดือน</option>
         </select>
       </div>
       <div class="w-auto">
         <label class="block text-sm font-semibold text-gray-700 mb-1">เลือกสถานะอัปเดต</label>
         <select id="updateStatus" class="w-full border border-gray-300 rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="applyFilters()">
-          <option value="">-- เลือกสถานะ --</option>
+          <option value="">เลือกสถานะ</option>
         </select>
       </div>
     </div>
 
-    <!-- ✅ Loading Message -->
+    <!-- Loading Message -->
     <div id="loadingMessage" class="text-center text-gray-500 mb-4">กำลังโหลดข้อมูล...</div>
 
-    <!-- Posts Section -->
+    <!-- Posts Table -->
     <div id="posts" class="overflow-x-auto">
       <label class="block text-sm font-semibold text-gray-700 mb-1 mr-2">รายการอัปเดต <span id="postCount" class="text-blue-600 font-medium"></span></label>
       <table class="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
@@ -80,11 +64,9 @@
   </div>
 
   <script>
-    // Utility functions
     const $ = id => document.getElementById(id);
     const sheetURL = "https://docs.google.com/spreadsheets/d/1xRqnFHRWL3l_-6-LNJ_LM5Bejiv0aV5JwcV9PtzC-Nk/gviz/tq?tqx=out:json";
     const monthNames = ["", "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
-
     let allPosts = [];
 
     const parseThaiDate = str => {
@@ -96,8 +78,7 @@
 
     const formatThaiDate = str => {
       const d = parseThaiDate(str);
-      if (isNaN(d)) return str;
-      return `${d.getDate()} ${monthNames[d.getMonth() + 1]} ${d.getFullYear() + 543}`;
+      return isNaN(d) ? str : `${d.getDate()} ${monthNames[d.getMonth() + 1]} ${d.getFullYear() + 543}`;
     };
 
     const extractMonth = str => {
@@ -111,10 +92,12 @@
     };
 
     const fillDropdowns = () => {
-      const months = [...new Set(allPosts.map(p => p.month))].filter(Boolean).sort((a, b) => {
-        const [yA, mA] = a.split("-").map(Number);
-        const [yB, mB] = b.split("-").map(Number);
-        return yA - yB || mA - mB;
+      const months = [...new Set(allPosts
+        .filter(p => p.detail && p.detail !== "ไม่มีอัปเดต")
+        .map(p => p.month))].filter(Boolean).sort((a, b) => {
+          const [yA, mA] = a.split("-").map(Number);
+          const [yB, mB] = b.split("-").map(Number);
+          return yA - yB || mA - mB;
       });
 
       $("monthFilter").innerHTML = `<option value="">ทุกเดือน</option>` + months.map(m => {
@@ -130,7 +113,7 @@
       const noUpdate = allPosts.filter(p => p.detail === "ไม่มีอัปเดต");
 
       $("updateStatus").innerHTML = `
-        <option value="">-- เลือกสถานะ --</option>
+        <option value="">เลือกสถานะ</option>
         <option value="lastUpdate">อัปเดตล่าสุด (${lastUpdate.length})</option>
         <option value="hasUpdate">วันที่มีการอัปเดต (${hasUpdate.length})</option>
         <option value="noUpdate">วันที่ไม่มีการอัปเดต (${noUpdate.length})</option>
@@ -150,7 +133,8 @@
         return (!search || text.includes(search)) &&
                (!start || date >= start) &&
                (!end || date <= end) &&
-               (!month || p.month === month);
+               (!month || p.month === month) &&
+               p.detail && p.detail !== "";
       });
 
       if (status === "lastUpdate") {
@@ -193,7 +177,6 @@
         : `<tr><td colspan="3" class="text-center py-3 text-sm text-gray-500">ไม่พบข้อมูล</td></tr>`;
     };
 
-    // Load Data
     fetch(sheetURL)
       .then(res => res.text())
       .then(text => {
@@ -212,7 +195,7 @@
 
         fillDropdowns();
         updateStatusDropdown();
-        renderPosts(allPosts.filter(p => p.detail && p.detail !== "ไม่มีอัปเดต"));
+        renderPosts(allPosts.filter(p => p.month === getCurrentMonth() && p.detail && p.detail !== "ไม่มีอัปเดต"));
         $("loadingMessage").style.display = "none";
       });
 
