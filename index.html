@@ -108,14 +108,15 @@
 
     const updateStatusDropdown = () => {
       const currentMonth = getCurrentMonth();
-      const hasUpdate = allPosts.filter(p => p.month === currentMonth && p.detail && p.detail !== "ไม่มีอัปเดต");
-      const noUpdate = allPosts.filter(p => p.month === currentMonth && p.detail === "ไม่มีอัปเดต");
+      const lastUpdate = allPosts.filter(p => p.month === currentMonth && p.detail && p.detail !== "ไม่มีอัปเดต").slice(0, 7);
+      const hasUpdate = allPosts.filter(p => p.detail && p.detail !== "ไม่มีอัปเดต");
+      const noUpdate = allPosts.filter(p => p.detail === "ไม่มีอัปเดต");
 
       $("updateStatus").innerHTML = `
         <option value="">เลือกสถานะ</option>
-        ${hasUpdate.length ? `<option value="hasUpdate">วันที่มีการอัปเดต</option>` : ''}
-        ${noUpdate.length ? `<option value="noUpdate">วันที่ไม่มีการอัปเดต</option>` : ''}
         <option value="lastUpdate">อัปเดตล่าสุด</option>
+        <option value="hasUpdate">วันที่มีการอัปเดต</option>
+        <option value="noUpdate">วันที่ไม่มีการอัปเดต</option>
       `;
     };
 
@@ -125,43 +126,45 @@
       const end = $("endDate").value ? new Date($("endDate").value) : null;
       const month = $("monthFilter").value;
       const status = $("updateStatus").value;
-  
+
       let filtered = allPosts.filter(p => {
         const date = parseThaiDate(p.date);
         const text = `${p.title} ${p.detail}`.toLowerCase();
         return (!search || text.includes(search)) &&
-               (!start || date.getTime() >= start.getTime()) &&
-               (!end || date.getTime() <= end.getTime()) &&
+               (!start || date >= start) &&
+               (!end || date <= end) &&
                (!month || p.month === month) &&
                p.detail && p.detail !== "";
       });
 
-      if (status === "lastUpdate") {
-        const targetMonth = month || getCurrentMonth();
-        filtered = allPosts
-          .filter(p => p.month === targetMonth && p.detail && p.detail !== "ไม่มีอัปเดต")
-          .slice(0, 7);
+        if (status === "lastUpdate") {
+          const targetMonth = month || getCurrentMonth(); // ถ้ามีการเลือกเดือน ให้ใช้ค่านั้น
+          filtered = allPosts
+            .filter(p => p.month === targetMonth && p.detail && p.detail !== "ไม่มีอัปเดต")
+            .slice(0, 7)
       } else if (status === "hasUpdate") {
         filtered = filtered.filter(p => p.detail && p.detail !== "ไม่มีอัปเดต");
       } else if (status === "noUpdate") {
         filtered = filtered.filter(p => p.detail === "ไม่มีอัปเดต");
       }
-    
+
       renderPosts(filtered);
     };
-  
+
     const resetFilters = () => {
       $("searchInput").value = "";
       $("startDate").value = "";
       $("endDate").value = "";
       $("monthFilter").value = "";
-      $("updateStatus").value = "";
-  
+      $("updateStatus").value = ""; 
+
       const currentMonth = getCurrentMonth();
       const filtered = allPosts.filter(p => p.month === currentMonth && p.detail && p.detail !== "ไม่มีอัปเดต");
       renderPosts(filtered);
-    };
 
+      applyFilters();
+    };
+    
     const renderPosts = data => {
       const body = $("postsTableBody");
       $("postCount").textContent = `(${data.length} รายการ)`;
@@ -176,34 +179,33 @@
         : `<tr><td colspan="3" class="text-center py-3 text-sm text-gray-500">ไม่พบข้อมูล</td></tr>`;
     };
 
-    fetch(sheetURL)
-      .then(res => res.text())
-      .then(text => {
-        const json = JSON.parse(text.substring(47).slice(0, -2));
-        allPosts = json.table.rows.map(row => {
-          const date = row.c[0]?.f || row.c[0]?.v || "";
-          return {
-            date,
-            title: row.c[1]?.v || "",
-            detail: row.c[2]?.v || "",
-            category: row.c[3]?.v || "",
-            month: extractMonth(date),
-            sortDate: parseThaiDate(date)
-          };
-        }).sort((a, b) => b.sortDate - a.sortDate);
-    
-        fillDropdowns();
-        updateStatusDropdown();
-    
-        $("updateStatus").value = "";
-        $("monthFilter").value = getCurrentMonth();
-        applyFilters();
-    
-        $("loadingMessage").style.display = "none";
-      })
-      .catch(() => {
-        $("loadingMessage").textContent = "เกิดข้อผิดพลาดในการโหลดข้อมูล!";
-      });
+      fetch(sheetURL)
+        .then(res => res.text())
+        .then(text => {
+          const json = JSON.parse(text.substring(47).slice(0, -2));
+          allPosts = json.table.rows.map(row => {
+            const date = row.c[0]?.f || row.c[0]?.v || "";
+            return {
+              date,
+              title: row.c[1]?.v || "",
+              detail: row.c[2]?.v || "",
+              category: row.c[3]?.v || "",
+              month: extractMonth(date),
+              sortDate: parseThaiDate(date)
+            };
+          }).sort((a, b) => b.sortDate - a.sortDate);
+      
+          fillDropdowns();
+          updateStatusDropdown();
+          
+          // ✅ ตั้งค่า default ให้แสดงรายการที่มีการอัปเดตในเดือนปัจจุบัน
+          $("updateStatus").value = "";
+          $("monthFilter").value = getCurrentMonth();
+          applyFilters();
+      
+          $("loadingMessage").style.display = "none";
+        });
+
   </script>
 </body>
 </html>
