@@ -69,6 +69,14 @@
     const monthNames = ["", "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
     let allPosts = [];
 
+    // เพิ่ม event listener สำหรับการกดปุ่ม Enter ในช่องค้นหา
+    $("searchInput").addEventListener("keypress", function(event) {
+      if (event.key === "Enter") {
+        event.preventDefault(); // ป้องกันไม่ให้เกิดการ submit form
+        applyFilters(); // เรียกฟังก์ชัน applyFilters
+      }
+    });
+
     const parseThaiDate = str => {
       const [d, m, y] = str.split('/');
       if (!d || !m || !y) return new Date("Invalid");
@@ -122,6 +130,7 @@
 
     const applyFilters = () => {
       const search = $("searchInput").value.toLowerCase();
+      
       const start = $("startDate").value ? new Date($("startDate").value) : null;
       const end = $("endDate").value ? new Date($("endDate").value) : null;
       const month = $("monthFilter").value;
