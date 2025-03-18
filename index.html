@@ -137,11 +137,11 @@
                p.detail && p.detail !== "";
       });
 
-      if (status === "lastUpdate") {
-        const currentMonth = getCurrentMonth();
-        filtered = allPosts
-          .filter(p => p.month === currentMonth && p.detail && p.detail !== "ไม่มีอัปเดต")
-          .slice(0, 7);
+        if (status === "lastUpdate") {
+          const targetMonth = month || getCurrentMonth(); // ถ้ามีการเลือกเดือน ให้ใช้ค่านั้น
+          filtered = allPosts
+            .filter(p => p.month === targetMonth && p.detail && p.detail !== "ไม่มีอัปเดต")
+            .slice(0, 7)
       } else if (status === "hasUpdate") {
         filtered = filtered.filter(p => p.detail && p.detail !== "ไม่มีอัปเดต");
       } else if (status === "noUpdate") {
