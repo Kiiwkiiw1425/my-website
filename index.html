@@ -3,173 +3,146 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>📢 อัปเดตระบบ DPIS</title>
+  <title>DPIS Updates</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    .resizable { position: relative; user-select: none; overflow: hidden; }
-    .resizable .resizer { position: absolute; top: 0; right: 0; width: 5px; height: 100%; cursor: ew-resize; background-color: #ddd; }
-    th, td { white-space: nowrap; }
-  </style>
 </head>
 <body class="bg-gray-50 text-gray-800 p-4">
-  <div class="max-w-6xl mx-auto">
-    <h2 class="text-3xl font-semibold mb-6 text-left text-blue-600">📢 อัปเดตระบบ DPIS</h2>
+  <div class="max-w-7xl mx-auto">
+    <h1 class="text-2xl font-bold mb-4">รายการอัปเดต <span id="totalCount" class="text-blue-600">(0)</span></h1>
 
-    <!-- Filters Section -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-6">
-      <div>
-        <label class="block text-sm font-semibold text-gray-700 mb-1">การค้นหา</label>
-        <input id="searchInput" type="text" placeholder="ค้นหาคำ..." class="w-full border border-gray-300 rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-      </div>
-      <div>
-        <label class="block text-sm font-semibold text-gray-700 mb-1">วันที่เริ่มต้น</label>
-        <input id="startDate" type="date" class="w-full border border-gray-300 rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-      </div>
-      <div>
-        <label class="block text-sm font-semibold text-gray-700 mb-1">วันที่สิ้นสุด</label>
-        <input id="endDate" type="date" class="w-full border border-gray-300 rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-      </div>
-      <div class="flex items-end gap-4">
-        <button onclick="applyFilters()" class="bg-blue-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">ค้นหา</button>
-        <button onclick="resetFilters()" class="bg-gray-300 px-4 py-2 rounded-lg shadow-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500">ล้าง</button>
-      </div>
+    <!-- Filters -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-4">
+      <input id="searchInput" type="text" placeholder="ค้นหา..." class="border rounded px-3 py-2 w-full" />
+      <input id="startDate" type="date" class="border rounded px-3 py-2 w-full" />
+      <input id="endDate" type="date" class="border rounded px-3 py-2 w-full" />
+      <select id="monthFilter" class="border rounded px-3 py-2 w-full">
+        <option value="">ทุกเดือน</option>
+      </select>
+      <select id="updateStatus" class="border rounded px-3 py-2 w-full">
+        <option value="hasUpdate">วันที่มีการอัปเดต</option>
+        <option value="noUpdate">วันที่ไม่มีการอัปเดต</option>
+        <option value="">แสดงทั้งหมด</option>
+      </select>
     </div>
 
-    <!-- Month and Update Status Filters -->
-    <div class="flex flex-wrap gap-4 mb-6">
-      <div class="w-auto">
-        <label class="block text-sm font-semibold text-gray-700 mb-1">เลือกเดือน</label>
-        <select id="monthFilter" class="w-full border border-gray-300 rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="applyFilters()">
-          <option value="">ทุกเดือน</option>
-        </select>
-      </div>
-      <div class="w-auto">
-        <label class="block text-sm font-semibold text-gray-700 mb-1">เลือกสถานะอัปเดต</label>
-        <select id="updateStatus" class="w-full border border-gray-300 rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="applyFilters()">
-          <option value="">เลือกสถานะ</option>
-        </select>
-      </div>
+    <!-- Buttons -->
+    <div class="flex flex-wrap gap-2 mb-4">
+      <button onclick="resetFilters()" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold px-4 py-2 rounded">ล้าง</button>
     </div>
 
-    <!-- Loading Message -->
-    <div id="loadingMessage" class="text-center text-gray-500 mb-4">กำลังโหลดข้อมูล...</div>
-
-    <!-- Posts Table -->
-    <div id="posts" class="overflow-x-auto">
-      <label class="block text-sm font-semibold text-gray-700 mb-1 mr-2">รายการอัปเดต <span id="postCount" class="text-blue-600 font-medium"></span></label>
-      <table class="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
-        <tbody id="postsTableBody"></tbody>
+    <!-- Table -->
+    <div class="overflow-x-auto">
+      <table class="min-w-full table-auto border border-gray-300 bg-white">
+        <thead class="bg-gray-200">
+          <tr>
+            <th class="px-4 py-2 border">วันที่</th>
+            <th class="px-4 py-2 border">หัวข้อ</th>
+            <th class="px-4 py-2 border">รายละเอียด</th>
+            <th class="px-4 py-2 border">หมวดหมู่</th>
+          </tr>
+        </thead>
+        <tbody id="updatesTable"></tbody>
       </table>
     </div>
+
+    <div id="loadingMessage" class="text-center text-gray-500 mt-4">กำลังโหลดข้อมูล...</div>
   </div>
 
   <script>
     const $ = id => document.getElementById(id);
-    const sheetURL = "https://docs.google.com/spreadsheets/d/1xRqnFHRWL3l_-6-LNJ_LM5Bejiv0aV5JwcV9PtzC-Nk/gviz/tq?tqx=out:json";
-    const monthNames = ["", "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+    const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTwBLrgrHQ_Pp9J10Zg_sYiH0MQBy8CI8Dd3EZJxFu05DxFBlHRgfdrdS3MG-MAJ6GVcGHbHfeLGG93/pub?output=tsv&headers=1&single=true&output=csv&alt=json";
+
     let allPosts = [];
 
-    const parseThaiDate = str => {
-      const [d, m, y] = str.split('/');
-      if (!d || !m || !y) return new Date("Invalid");
-      const year = +y > 2500 ? +y - 543 : +y;
-      return new Date(`${year}-${m}-${d}`);
+    const thaiMonths = [
+      "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน",
+      "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"
+    ];
+
+    const parseThaiDate = (dateStr) => {
+      const parts = dateStr.split(" ");
+      if (parts.length < 3) return new Date("Invalid");
+      const day = parseInt(parts[0]);
+      const month = thaiMonths.indexOf(parts[1]);
+      const year = parseInt(parts[2]) - 543;
+      return new Date(year, month, day);
     };
 
-    const formatThaiDate = str => {
-      const d = parseThaiDate(str);
-      return isNaN(d) ? str : `${d.getDate()} ${monthNames[d.getMonth() + 1]} ${d.getFullYear() + 543}`;
-    };
-
-    const extractMonth = str => {
-      const d = parseThaiDate(str);
-      return isNaN(d) ? "" : `${d.getFullYear()}-${d.getMonth() + 1}`;
+    const extractMonth = (dateStr) => {
+      const parts = dateStr.split(" ");
+      return parts[1] || "";
     };
 
     const getCurrentMonth = () => {
-      const today = new Date();
-      return `${today.getFullYear()}-${today.getMonth() + 1}`;
+      const now = new Date();
+      return thaiMonths[now.getMonth()];
     };
 
     const fillDropdowns = () => {
-      const months = [...new Set(allPosts
-        .filter(p => p.detail && p.detail !== "ไม่มีอัปเดต")
-        .map(p => p.month))].filter(Boolean).sort((a, b) => {
-          const [yA, mA] = a.split("-").map(Number);
-          const [yB, mB] = b.split("-").map(Number);
-          return yA - yB || mA - mB;
+      const monthSet = new Set(allPosts.map(post => post.month));
+      const sortedMonths = thaiMonths.filter(month => monthSet.has(month));
+      const monthDropdown = $("monthFilter");
+
+      sortedMonths.forEach(month => {
+        const opt = document.createElement("option");
+        opt.value = month;
+        opt.textContent = month;
+        monthDropdown.appendChild(opt);
       });
-
-      $("monthFilter").innerHTML = `<option value="">ทุกเดือน</option>` + months.map(m => {
-        const [y, mo] = m.split("-");
-        return `<option value="${m}">${monthNames[+mo]} ${+y + 543}</option>`;
-      }).join("");
-    };
-
-    const updateStatusDropdown = () => {
-      const currentMonth = getCurrentMonth();
-      const lastUpdate = allPosts.filter(p => p.month === currentMonth && p.detail && p.detail !== "ไม่มีอัปเดต").slice(0, 7);
-      const hasUpdate = allPosts.filter(p => p.detail && p.detail !== "ไม่มีอัปเดต");
-      const noUpdate = allPosts.filter(p => p.detail === "ไม่มีอัปเดต");
-
-
     };
 
     const applyFilters = () => {
-      const search = $("searchInput").value.toLowerCase();
+      const keyword = $("searchInput").value.toLowerCase();
       const start = $("startDate").value ? new Date($("startDate").value) : null;
       const end = $("endDate").value ? new Date($("endDate").value) : null;
       const month = $("monthFilter").value;
       const status = $("updateStatus").value;
 
-      let filtered = allPosts.filter(p => {
-        const date = parseThaiDate(p.date);
-        const text = `${p.title} ${p.detail}`.toLowerCase();
-        return (!search || text.includes(search)) &&
-               (!start || date >= start) &&
-               (!end || date <= end) &&
-               (!month || p.month === month) &&
-               p.detail && p.detail !== "";
+      let filtered = allPosts.filter(post => {
+        const matchesKeyword =
+          post.title.toLowerCase().includes(keyword) ||
+          post.detail.toLowerCase().includes(keyword);
+
+        const postDate = post.sortDate;
+        const inRange = (!start || postDate >= start) && (!end || postDate <= end);
+        const inMonth = !month || post.month === month;
+        const statusMatch =
+          status === "hasUpdate" ? post.detail.trim() !== "" :
+          status === "noUpdate" ? post.detail.trim() === "" :
+          true;
+
+        return matchesKeyword && inRange && inMonth && statusMatch;
       });
 
-      if (status === "lastUpdate") {
-        const currentMonth = getCurrentMonth();
-        filtered = allPosts
-          .filter(p => p.month === currentMonth && p.detail && p.detail !== "ไม่มีอัปเดต")
-          .slice(0, 7);
-      } else if (status === "hasUpdate") {
-        filtered = filtered.filter(p => p.detail && p.detail !== "ไม่มีอัปเดต");
-      } else if (status === "noUpdate") {
-        filtered = filtered.filter(p => p.detail === "ไม่มีอัปเดต");
-      }
+      renderTable(filtered);
+    };
 
-      renderPosts(filtered);
+    const renderTable = (posts) => {
+      const table = $("updatesTable");
+      table.innerHTML = "";
+      $("totalCount").textContent = `(${posts.length})`;
+
+      posts.forEach(post => {
+        const row = document.createElement("tr");
+
+        ["date", "title", "detail", "category"].forEach(key => {
+          const cell = document.createElement("td");
+          cell.textContent = post[key];
+          cell.className = "border px-4 py-2 align-top";
+          row.appendChild(cell);
+        });
+
+        table.appendChild(row);
+      });
     };
 
     const resetFilters = () => {
       $("searchInput").value = "";
       $("startDate").value = "";
       $("endDate").value = "";
-      $("monthFilter").value = "";
-      $("updateStatus").value = "";
-
-      const currentMonth = getCurrentMonth();
-      const filtered = allPosts.filter(p => p.month === currentMonth && p.detail && p.detail !== "ไม่มีอัปเดต");
-      renderPosts(filtered);
-    };
-
-    const renderPosts = data => {
-      const body = $("postsTableBody");
-      $("postCount").textContent = `(${data.length} รายการ)`;
-
-      body.innerHTML = data.length
-        ? data.map(p => `
-            <tr class="border-b hover:bg-gray-50">
-              <td class="px-6 py-3 text-sm">${formatThaiDate(p.date)}</td>
-              <td class="px-6 py-3 text-sm font-semibold">${p.title || '—'}</td>
-              <td class="px-6 py-3 text-sm text-gray-600">${p.detail?.replace(/\n/g, "<br>") || 'ไม่พบข้อมูล'}</td>
-            </tr>`).join("")
-        : `<tr><td colspan="3" class="text-center py-3 text-sm text-gray-500">ไม่พบข้อมูล</td></tr>`;
+      $("monthFilter").value = getCurrentMonth();
+      $("updateStatus").value = "hasUpdate";
+      applyFilters();
     };
 
     fetch(sheetURL)
@@ -189,13 +162,14 @@
         }).sort((a, b) => b.sortDate - a.sortDate);
 
         fillDropdowns();
-        updateStatusDropdown();
-        renderPosts(allPosts.filter(p => p.month === getCurrentMonth() && p.detail && p.detail !== "ไม่มีอัปเดต"));
+        $("updateStatus").value = "hasUpdate";
+        $("monthFilter").value = getCurrentMonth();
+        applyFilters();
         $("loadingMessage").style.display = "none";
       });
 
-    $("searchInput").addEventListener("keypress", e => {
-      if (e.key === "Enter") applyFilters();
+    ["searchInput", "startDate", "endDate", "monthFilter", "updateStatus"].forEach(id => {
+      $(id).addEventListener("input", applyFilters);
     });
   </script>
 </body>
