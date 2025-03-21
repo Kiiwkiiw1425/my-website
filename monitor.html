@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>📊 หน้าตรวจสอบการใช้งานระบบ</title>
+  <title>📊 สถานะการใช้งานระบบ DPIS6</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 text-gray-800 p-4">
   <div class="max-w-6xl mx-auto">
-    <h2 class="text-3xl font-semibold mb-6 text-blue-600">📊 หน้าตรวจสอบการใช้งานระบบ</h2>
+    <h2 class="text-3xl font-semibold mb-6 text-blue-600">📊 สถานะการใช้งานระบบ DPIS6</h2>
 
     <!-- Search Bar -->
     <div class="flex flex-wrap items-center gap-4 mb-6">
@@ -65,12 +65,12 @@
       .then(text => {
         const json = JSON.parse(text.substring(47).slice(0, -2));
         allData = json.table.rows.map(row => ({
-          ministry: row.c[0]?.v || "",
-          department: row.c[1]?.v || "",
-          status: row.c[2]?.v || "",
-          location: row.c[3]?.v || "",
-          usage: row.c[4]?.v || "",
-          domain: row.c[5]?.v || ""
+          ministry: row.c[1]?.v || "",
+          department: row.c[2]?.v || "",
+          status: row.c[3]?.v || "",
+          location: row.c[4]?.v || "",
+          usage: row.c[5]?.v || "",
+          domain: row.c[6]?.v || ""
         }));
         filterByStatus('ทั้งหมด');
       });
