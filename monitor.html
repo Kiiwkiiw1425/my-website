@@ -111,6 +111,7 @@
       renderData(allData);
     }
 
+    // Filter Events
     document.querySelectorAll("select").forEach(select => {
       select.addEventListener("change", filterData);
     });
@@ -121,14 +122,14 @@
 
     $("clearBtn").addEventListener("click", resetFilters);
 
-    const populateSelect = (id, options) => {
+    function populateSelect(id, options) {
       const select = $(id);
       options.forEach(text => {
         const opt = document.createElement("option");
         opt.value = opt.textContent = text;
         select.appendChild(opt);
       });
-    };
+    }
 
     fetch(sheetURL)
       .then(res => res.text())
@@ -137,18 +138,17 @@
         const rows = json.table.rows.slice(1); // skip header
         allData = rows.map(row => ({
           ministry: row.c[0]?.v || "",
-          status: row.c[1]?.v || "",
-          location: row.c[2]?.v || "",
-          type: row.c[3]?.v || "",
-          owner: row.c[4]?.v || "",
-          usage: row.c[5]?.v || "",
-          domain: row.c[6]?.v || ""
+          department: row.c[1]?.v || "",
+          status: row.c[2]?.v || "",
+          location: row.c[3]?.v || "",
+          domain: row.c[5]?.v || "",
+          type: row.c[6]?.v || "",
+          owner: row.c[7]?.v || "",
+          usage: row.c[8]?.v || "",
         })).filter(row => row.department);
 
         const ministries = [...new Set(allData.map(item => item.ministry).filter(Boolean))];
-        const departments = [...new Set(allData.map(item => item.department).filter(Boolean))];
         populateSelect("ministryFilter", ministries);
-        populateSelect("departmentFilter", departments);
 
         renderData(allData);
       });
