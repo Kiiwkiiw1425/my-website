@@ -3,12 +3,21 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>📊 หน้าตรวจสอบการใช้งานระบบ</title>
+  <title>📊 การใช้งานระบบ DPIS6</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="bg-gray-50 text-gray-800 p-4">
   <div class="max-w-7xl mx-auto">
-    <h2 class="text-3xl font-bold text-blue-700 mb-6">📊 หน้าตรวจสอบการใช้งานระบบ</h2>
+    <h2 class="text-3xl font-bold text-blue-700 mb-6">📊 การใช้งานระบบ DPIS6</h2>
+
+    <!-- Summary -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6" id="summaryContainer"></div>
+
+    <!-- Chart -->
+    <div class="bg-white rounded-xl shadow p-4 mb-6">
+      <canvas id="statusChart"></canvas>
+    </div>
 
     <!-- Search & Controls -->
     <div class="flex flex-wrap gap-4 mb-6 items-end">
@@ -63,6 +72,7 @@
     const $ = id => document.getElementById(id);
     const sheetURL = "https://docs.google.com/spreadsheets/d/1xRqnFHRWL3l_-6-LNJ_LM5Bejiv0aV5JwcV9PtzC-Nk/gviz/tq?sheet=from_Excel_list_covert&tqx=out:json";
     let allData = [];
+    let chart;
 
     const filterData = () => {
       const search = $("searchInput").value.trim().toLowerCase();
@@ -72,15 +82,16 @@
       const setup = $("setupFilter").value.toLowerCase();
 
       const filtered = allData.filter(item => {
-        const matchSearch = !search || item.department.toLowerCase().includes(search);
-        const matchMinistry = !ministry || item.ministry.toLowerCase() === ministry;
-        const matchStatus = !status || item.status.toLowerCase() === status;
-        const matchLocation = !location || item.location.toLowerCase() === location;
-        const matchSetup = !setup || item.setup.toLowerCase() === setup;
-        return matchSearch && matchMinistry && matchStatus && matchLocation && matchSetup;
+        return (!search || item.department.toLowerCase().includes(search)) &&
+               (!ministry || item.ministry.toLowerCase() === ministry) &&
+               (!status || item.status.toLowerCase() === status) &&
+               (!location || item.location.toLowerCase() === location) &&
+               (!setup || item.setup.toLowerCase() === setup);
       });
 
       renderData(filtered);
+      updateSummary(filtered);
+      updateChart(filtered);
     };
 
     const renderData = (data) => {
@@ -96,7 +107,7 @@
 
       data.forEach(item => {
         list.innerHTML += `
-          <div class="bg-white shadow rounded-xl p-4 border-l-4 ${item.setup === 'ยังใช้งานอยู่' ? 'border-green-500' : 'border-red-500'}">
+          <div class="bg-white shadow rounded-xl p-4 border-l-4 ${item.status === 'ติดตั้งแล้วเสร็จ' ? 'border-green-500' : 'border-red-500'}">
             <h3 class="text-lg font-bold text-gray-800">${item.department}</h3>
             <p class="text-sm text-gray-600">กระทรวง: ${item.ministry}</p>
             <p class="text-sm text-gray-600">สถานะ: ${item.status}</p>
@@ -106,9 +117,74 @@
       });
     };
 
+    const updateSummary = (data) => {
+      const total = data.length;
+      const done = data.filter(i => i.status === "ติดตั้งแล้วเสร็จ").length;
+      const pending = data.filter(i => i.status === "ยังไม่ถ่ายโอน").length;
+      const owner = data.filter(i => i.location === "OWNER").length;
+      const ocsc = data.filter(i => i.location === "OCSC").length;
+
+      $("summaryContainer").innerHTML = `
+        <div class="bg-white rounded-lg shadow p-4 text-center">
+          <p class="text-2xl font-bold text-blue-600">${total}</p>
+          <p class="text-sm text-gray-600">หน่วยงานทั้งหมด</p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-4 text-center">
+          <p class="text-2xl font-bold text-green-600">${done}</p>
+          <p class="text-sm text-gray-600">ติดตั้งแล้วเสร็จ</p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-4 text-center">
+          <p class="text-2xl font-bold text-yellow-600">${pending}</p>
+          <p class="text-sm text-gray-600">ยังไม่ถ่ายโอน</p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-4 text-center">
+          <p class="text-2xl font-bold text-purple-600">${owner + ocsc}</p>
+          <p class="text-sm text-gray-600">รวมติดตั้งแล้ว</p>
+        </div>
+      `;
+    };
+
+    const updateChart = (data) => {
+      const labels = ["ติดตั้งแล้วเสร็จ", "ยังไม่ถ่ายโอน"];
+      const counts = labels.map(label => data.filter(i => i.status === label).length);
+
+      if (chart) chart.destroy();
+      chart = new Chart($("statusChart"), {
+        type: "bar",
+        data: {
+          labels: labels,
+          datasets: [{
+            label: "จำนวนหน่วยงาน",
+            data: counts,
+            backgroundColor: ["#16a34a", "#facc15"],
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false },
+            title: {
+              display: true,
+              text: "แผนภูมิสถานะการติดตั้ง"
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                stepSize: 1
+              }
+            }
+          }
+        }
+      });
+    };
+
     const resetFilters = () => {
       ["searchInput", "ministryFilter", "statusFilter", "locationFilter", "setupFilter"].forEach(id => $(id).value = "");
       renderData(allData);
+      updateSummary(allData);
+      updateChart(allData);
     };
 
     const populateSelect = (id, options) => {
@@ -123,28 +199,27 @@
     $("searchBtn").onclick = filterData;
     $("clearBtn").onclick = resetFilters;
     $("searchInput").addEventListener("keypress", e => { if (e.key === "Enter") filterData(); });
-
-    ["ministryFilter", "statusFilter", "locationFilter", "setupFilter"].forEach(id => {
-      $(id).addEventListener("change", filterData);
-    });
+    ["ministryFilter", "statusFilter", "locationFilter", "setupFilter"].forEach(id => $(id).addEventListener("change", filterData));
 
     fetch(sheetURL)
       .then(res => res.text())
       .then(text => {
         const json = JSON.parse(text.substring(47).slice(0, -2));
-        const rows = json.table.rows.slice(1); // skip header
+        const rows = json.table.rows.slice(1);
         allData = rows.map(row => ({
-          ministry: row.c[0]?.v || "", //กระทรวง
-          department: row.c[1]?.v || "", //กรม
-          status: row.c[2]?.v || "", //สถานะ
-          location: row.c[3]?.v || "", //ติดตั้งที่
-          setup: row.c[6]?.v || "" //การติดตั้ง
+          ministry: row.c[0]?.v || "",
+          department: row.c[1]?.v || "",
+          status: row.c[2]?.v || "",
+          location: row.c[3]?.v || "",
+          setup: row.c[6]?.v || ""
         })).filter(row => row.department);
 
         const ministries = [...new Set(allData.map(item => item.ministry).filter(Boolean))];
         populateSelect("ministryFilter", ministries);
 
         renderData(allData);
+        updateSummary(allData);
+        updateChart(allData);
       });
   </script>
 </body>
