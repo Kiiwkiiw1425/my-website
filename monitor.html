@@ -1,89 +1,79 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Monitoring Dashboard</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>📊 หน้าตรวจสอบการใช้งานระบบ</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 min-h-screen p-4">
-  <div class="max-w-7xl mx-auto">
-    <h1 class="text-2xl font-bold mb-4">📊 Monitoring Dashboard</h1>
+<body class="bg-gray-50 text-gray-800 p-4">
+  <div class="max-w-6xl mx-auto">
+    <h2 class="text-3xl font-semibold mb-6 text-blue-600">📊 หน้าตรวจสอบการใช้งานระบบ</h2>
 
-    <!-- 🔍 Search & Filter -->
-    <div class="mb-4 flex flex-col md:flex-row md:items-center gap-2">
-      <input id="searchInput" type="text" placeholder="🔍 ค้นหา กรม/กระทรวง..." class="p-2 border rounded w-full md:w-1/2" />
-      <div class="flex gap-2">
-        <button onclick="filterStatus('ใช้งาน')" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">ใช้งาน</button>
-        <button onclick="filterStatus('ไม่ใช้งาน')" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">ไม่ใช้งาน</button>
-        <button onclick="filterStatus('ทั้งหมด')" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">ทั้งหมด</button>
-      </div>
+    <!-- Search Bar -->
+    <div class="flex flex-wrap items-center gap-4 mb-6">
+      <input id="searchInput" type="text" placeholder="ค้นหาชื่อหน่วยงาน..." class="w-full sm:w-72 border border-gray-300 rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
     </div>
 
-    <!-- 📋 Dashboard -->
-    <div id="dashboard" class="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"></div>
+    <!-- Filter Buttons -->
+    <div class="flex flex-wrap gap-2 mb-6" id="statusButtons">
+      <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700" onclick="filterByStatus('ทั้งหมด')">ทั้งหมด</button>
+      <button class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700" onclick="filterByStatus('ใช้งาน')">ใช้งาน</button>
+      <button class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700" onclick="filterByStatus('ไม่ใช้งาน')">ไม่ใช้งาน</button>
+    </div>
+
+    <!-- Data Grid -->
+    <div id="monitorList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
   </div>
 
   <script>
+    const $ = id => document.getElementById(id);
     const sheetURL = "https://docs.google.com/spreadsheets/d/1xRqnFHRWL3l_-6-LNJ_LM5Bejiv0aV5JwcV9PtzC-Nk/gviz/tq?tqx=out:json";
+
     let allData = [];
 
-    // โหลดข้อมูลจาก Google Sheet
+    function renderData(data) {
+      const container = $("monitorList");
+      container.innerHTML = data.map(item => `
+        <div class="bg-white rounded-xl shadow-md p-4 border-l-4 ${item.usage === 'ใช้งาน' ? 'border-green-500' : 'border-red-500'}">
+          <h3 class="text-lg font-semibold">${item.department}</h3>
+          <p class="text-sm text-gray-700">กระทรวง: ${item.ministry}</p>
+          <p class="text-sm text-gray-700">สถานะ: ${item.status}</p>
+          <p class="text-sm text-gray-700">ติดตั้งที่: ${item.location}</p>
+          <p class="text-sm text-gray-700">การใช้งาน: 
+            <span class="${item.usage === 'ใช้งาน' ? 'text-green-600' : 'text-red-600'} font-semibold">${item.usage}</span>
+          </p>
+          ${item.domain ? `<a href="${item.domain}" target="_blank" class="text-blue-600 underline text-sm">ไปที่ระบบ</a>` : ""}
+        </div>
+      `).join("");
+    }
+
+    function filterByStatus(status) {
+      const search = $("searchInput").value.toLowerCase();
+      const filtered = allData.filter(item => {
+        const matchSearch = item.department.toLowerCase().includes(search);
+        const matchStatus = status === "ทั้งหมด" || item.usage === status;
+        return matchSearch && matchStatus;
+      });
+      renderData(filtered);
+    }
+
+    $("searchInput").addEventListener("input", () => filterByStatus('ทั้งหมด'));
+
     fetch(sheetURL)
       .then(res => res.text())
       .then(text => {
         const json = JSON.parse(text.substring(47).slice(0, -2));
-        const cols = json.table.cols.map(col => col.label);
-        const rows = json.table.rows.map(row => {
-          const obj = {};
-          row.c.forEach((cell, i) => {
-            obj[cols[i]] = cell ? cell.v : '';
-          });
-          return obj;
-        });
-
-        allData = rows;
-        renderDashboard(allData);
+        allData = json.table.rows.map(row => ({
+          ministry: row.c[0]?.v || "",
+          department: row.c[1]?.v || "",
+          status: row.c[2]?.v || "",
+          location: row.c[3]?.v || "",
+          usage: row.c[4]?.v || "",
+          domain: row.c[5]?.v || ""
+        }));
+        filterByStatus('ทั้งหมด');
       });
-
-    // แสดง Dashboard
-    function renderDashboard(data) {
-      const container = document.getElementById('dashboard');
-      container.innerHTML = '';
-      data.forEach(item => {
-        const statusColor = item['สถานะ'] === 'ใช้งาน' ? 'text-green-600' : 'text-red-600';
-        const linkHTML = item['ติดตั้งที่']
-          ? `<a href="${item['ติดตั้งที่']}" target="_blank" class="text-blue-600 underline">🔗 ไปยังระบบ</a>`
-          : '';
-
-        container.innerHTML += `
-          <div class="bg-white rounded-lg shadow p-4">
-            <h2 class="text-lg font-bold text-gray-800">${item['กรม/ส่วนราชการ']}</h2>
-            <p class="text-sm text-gray-600">กระทรวง: ${item['กระทรวง']}</p>
-            <p class="text-sm">สถานะ: <span class="${statusColor} font-semibold">${item['สถานะ']}</span></p>
-            <p class="text-sm">สถานะการใช้งาน: ${item['สถานะการใช้งาน']}</p>
-            <p class="text-sm">ติดตั้งที่: ${item['ติดตั้งที่']}</p>
-            ${linkHTML}
-          </div>
-        `;
-      });
-    }
-
-    // ปุ่มกรองสถานะ
-    function filterStatus(status) {
-      const filtered = status === 'ทั้งหมด' ? allData : allData.filter(item => item['สถานะ'] === status);
-      renderDashboard(filtered);
-    }
-
-    // ค้นหา
-    document.getElementById('searchInput').addEventListener('input', e => {
-      const keyword = e.target.value.toLowerCase();
-      const filtered = allData.filter(item =>
-        item['กรม/ส่วนราชการ'].toLowerCase().includes(keyword) ||
-        item['กระทรวง'].toLowerCase().includes(keyword)
-      );
-      renderDashboard(filtered);
-    });
   </script>
 </body>
 </html>
