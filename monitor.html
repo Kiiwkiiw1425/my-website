@@ -59,12 +59,11 @@
 
       <!-- Usage Filter -->
       <div>
-        <label for="usageFilter" class="block mb-2 font-semibold">การใช้งาน</label>
+        <label for="usageFilter" class="block mb-2 font-semibold">การติดตั้ง</label>
         <select id="usageFilter" class="w-full border border-gray-300 rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-          <option value="">เลือกการใช้งาน</option>
-          <option value="ยังใช้งานอยู่">ยังใช้งานอยู่</option>
-          <option value="เลิกใช้งาน DPIS">เลิกใช้งาน DPIS</option>
-          <option value="ไม่มีการเคลื่อนไหว">ไม่มีการเคลื่อนไหว</option>
+          <option value="">เลือกการติดตั้ง</option>
+          <option value="production">Production</option>
+          <option value="test">Test</option>
         </select>
       </div>
     </div>
@@ -88,7 +87,7 @@
           <p class="text-sm text-gray-700">กระทรวง: ${item.ministry}</p>
           <p class="text-sm text-gray-700">สถานะ: ${item.status}</p>
           <p class="text-sm text-gray-700">ติดตั้งที่: ${item.location}</p>
-          <p class="text-sm text-gray-700">การใช้งาน: 
+          <p class="text-sm text-gray-700">การติดตั้ง: 
             <span class="${item.usage === 'ใช้งาน' ? 'text-green-600' : 'text-red-600'} font-semibold">${item.usage}</span>
           </p>
           ${item.domain ? `<a href="${item.domain}" target="_blank" class="text-blue-600 underline text-sm">ไปที่ระบบ</a>` : ""}
