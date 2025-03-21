@@ -85,7 +85,6 @@
     function filterData() {
       const filters = {
         ministry: $("ministryFilter").value.toLowerCase(),
-        department: $("departmentFilter").value.toLowerCase(),
         status: $("statusFilter").value.toLowerCase(),
         location: $("locationFilter").value.toLowerCase(),
         type: $("typeFilter").value.toLowerCase(),
@@ -97,7 +96,6 @@
       filteredData = allData.filter(item => {
         return (!search || item.department.toLowerCase().includes(search)) &&
           (!filters.ministry || item.ministry.toLowerCase().includes(filters.ministry)) &&
-          (!filters.department || item.department.toLowerCase().includes(filters.department)) &&
           (!filters.status || item.status.toLowerCase().includes(filters.status)) &&
           (!filters.location || item.location.toLowerCase().includes(filters.location)) &&
           (!filters.type || item.type.toLowerCase().includes(filters.type)) &&
@@ -139,13 +137,12 @@
         const rows = json.table.rows.slice(1); // skip header
         allData = rows.map(row => ({
           ministry: row.c[0]?.v || "",
-          department: row.c[1]?.v || "",
-          status: row.c[2]?.v || "",
-          location: row.c[3]?.v || "",
-          type: row.c[6]?.v || "",
-          owner: row.c[7]?.v || "",
-          usage: row.c[8]?.v || "",
-          domain: row.c[9]?.v || ""
+          status: row.c[1]?.v || "",
+          location: row.c[2]?.v || "",
+          type: row.c[3]?.v || "",
+          owner: row.c[4]?.v || "",
+          usage: row.c[5]?.v || "",
+          domain: row.c[6]?.v || ""
         })).filter(row => row.department);
 
         const ministries = [...new Set(allData.map(item => item.ministry).filter(Boolean))];
