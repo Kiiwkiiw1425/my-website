@@ -85,8 +85,8 @@
         const matchDepartment = !department || item.department.toLowerCase() === department;
         const matchStatus = !status || item.status.toLowerCase() === status;
         const matchLocation = !location || item.location.toLowerCase() === location;
-        const matchUsage = !usage || item.usage.toLowerCase() === usage;
-        return matchSearch && matchMinistry && matchDepartment && matchStatus && matchLocation && matchUsage;
+        const matchSetup = !setup || item.setup.toLowerCase() === setup;
+        return matchSearch && matchMinistry && matchDepartment && matchStatus && matchLocation && matchSetup;
       });
 
       renderData(filtered);
@@ -105,12 +105,12 @@
 
       data.forEach(item => {
         list.innerHTML += `
-          <div class="bg-white shadow rounded-xl p-4 border-l-4 ${item.usage === 'ยังใช้งานอยู่' ? 'border-green-500' : 'border-red-500'}">
+          <div class="bg-white shadow rounded-xl p-4 border-l-4 ${item.setup === 'ยังใช้งานอยู่' ? 'border-green-500' : 'border-red-500'}">
             <h3 class="text-lg font-bold text-gray-800">${item.department}</h3>
             <p class="text-sm text-gray-600">กระทรวง: ${item.ministry}</p>
             <p class="text-sm text-gray-600">สถานะ: ${item.status}</p>
             <p class="text-sm text-gray-600">ติดตั้งที่: ${item.location}</p>
-            <p class="text-sm text-gray-600">การติดตั้ง: ${item.usage}</p>
+            <p class="text-sm text-gray-600">การติดตั้ง: ${item.setup}</p>
           </div>`;
       });
     };
