@@ -10,16 +10,62 @@
   <div class="max-w-6xl mx-auto">
     <h2 class="text-3xl font-semibold mb-6 text-blue-600">📊 สถานะการใช้งานระบบ DPIS6</h2>
 
-    <!-- Search Bar -->
-    <div class="flex flex-wrap items-center gap-4 mb-6">
-      <input id="searchInput" type="text" placeholder="ค้นหาชื่อหน่วยงาน..." class="w-full sm:w-72 border border-gray-300 rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+    <!-- Search Bar and Buttons -->
+    <div class="flex flex-wrap gap-4 mb-6">
+      <input id="searchInput" type="text" placeholder="ค้นหาชื่อหน่วยงาน..." class="w-full sm:w-72 border border-gray-300 rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      <button id="searchBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">ค้นหา</button>
+      <button id="clearBtn" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">ล้าง</button>
     </div>
 
-    <!-- Filter Buttons -->
-    <div class="flex flex-wrap gap-2 mb-6" id="statusButtons">
-      <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700" onclick="filterByStatus('ทั้งหมด')">ทั้งหมด</button>
-      <button class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700" onclick="filterByStatus('ใช้งาน')">ใช้งาน</button>
-      <button class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700" onclick="filterByStatus('ไม่ใช้งาน')">ไม่ใช้งาน</button>
+    <!-- Filter Sections -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <!-- Ministry Filter -->
+      <div>
+        <label for="ministryFilter" class="block mb-2 font-semibold">กระทรวง</label>
+        <select id="ministryFilter" class="w-full border border-gray-300 rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="">เลือกกระทรวง</option>
+        </select>
+      </div>
+
+      <!-- Department Filter -->
+      <div>
+        <label for="departmentFilter" class="block mb-2 font-semibold">กรม</label>
+        <select id="departmentFilter" class="w-full border border-gray-300 rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="">เลือกกรม</option>
+        </select>
+      </div>
+
+      <!-- Status Filter -->
+      <div>
+        <label for="statusFilter" class="block mb-2 font-semibold">สถานะ</label>
+        <select id="statusFilter" class="w-full border border-gray-300 rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="">เลือกสถานะ</option>
+          <option value="ติดตั้งแล้วเสร็จ">ติดตั้งแล้วเสร็จ</option>
+          <option value="ยังไม่ถ่ายโอน">ยังไม่ถ่ายโอน</option>
+          <option value="กำลังประสานงาน">กำลังประสานงาน</option>
+        </select>
+      </div>
+
+      <!-- Location Filter -->
+      <div>
+        <label for="locationFilter" class="block mb-2 font-semibold">ติดตั้งที่</label>
+        <select id="locationFilter" class="w-full border border-gray-300 rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="">เลือกติดตั้งที่</option>
+          <option value="OWNER">OWNER</option>
+          <option value="OCSC">OCSC</option>
+        </select>
+      </div>
+
+      <!-- Usage Filter -->
+      <div>
+        <label for="usageFilter" class="block mb-2 font-semibold">การใช้งาน</label>
+        <select id="usageFilter" class="w-full border border-gray-300 rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="">เลือกการใช้งาน</option>
+          <option value="ยังใช้งานอยู่">ยังใช้งานอยู่</option>
+          <option value="เลิกใช้งาน DPIS">เลิกใช้งาน DPIS</option>
+          <option value="ไม่มีการเคลื่อนไหว">ไม่มีการเคลื่อนไหว</option>
+        </select>
+      </div>
     </div>
 
     <!-- Data Grid -->
@@ -31,6 +77,7 @@
     const sheetURL = "https://docs.google.com/spreadsheets/d/1xRqnFHRWL3l_-6-LNJ_LM5Bejiv0aV5JwcV9PtzC-Nk/gviz/tq?sheet=from_Excel_list_covert&tqx=out:json";
 
     let allData = [];
+    let filteredData = [];
 
     function renderData(data) {
       const container = $("monitorList");
@@ -48,17 +95,42 @@
       `).join("");
     }
 
-    function filterByStatus(status) {
+    function filterData() {
+      const ministryFilter = $("ministryFilter").value.toLowerCase();
+      const departmentFilter = $("departmentFilter").value.toLowerCase();
+      const statusFilter = $("statusFilter").value.toLowerCase();
+      const locationFilter = $("locationFilter").value.toLowerCase();
+      const usageFilter = $("usageFilter").value.toLowerCase();
       const search = $("searchInput").value.toLowerCase();
-      const filtered = allData.filter(item => {
+
+      filteredData = allData.filter(item => {
         const matchSearch = item.department.toLowerCase().includes(search);
-        const matchStatus = status === "ทั้งหมด" || item.usage === status;
-        return matchSearch && matchStatus;
+        const matchMinistry = ministryFilter === "" || item.ministry.toLowerCase().includes(ministryFilter);
+        const matchDepartment = departmentFilter === "" || item.department.toLowerCase().includes(departmentFilter);
+        const matchStatus = statusFilter === "" || item.status.toLowerCase().includes(statusFilter);
+        const matchLocation = locationFilter === "" || item.location.toLowerCase().includes(locationFilter);
+        const matchUsage = usageFilter === "" || item.usage.toLowerCase().includes(usageFilter);
+
+        return matchSearch && matchMinistry && matchDepartment && matchStatus && matchLocation && matchUsage;
       });
-      renderData(filtered);
+      renderData(filteredData);
     }
 
-    $("searchInput").addEventListener("input", () => filterByStatus('ทั้งหมด'));
+    function resetFilters() {
+      $("searchInput").value = "";
+      $("ministryFilter").value = "";
+      $("departmentFilter").value = "";
+      $("statusFilter").value = "";
+      $("locationFilter").value = "";
+      $("usageFilter").value = "";
+      filterData();
+    }
+
+    // Event Listeners
+    $("searchBtn").addEventListener("click", filterData);
+    $("clearBtn").addEventListener("click", resetFilters);
+
+    $("searchInput").addEventListener("input", filterData);
 
     fetch(sheetURL)
       .then(res => res.text())
@@ -72,7 +144,35 @@
           usage: row.c[4]?.v || "",
           domain: row.c[5]?.v || ""
         }));
-        filterByStatus('ทั้งหมด');
+
+        // Populate Ministry filter
+        const ministries = [...new Set(allData.map(item => item.ministry))];
+        const ministrySelect = $("ministryFilter");
+        ministries.forEach(ministry => {
+          const option = document.createElement("option");
+          option.value = ministry;
+          option.textContent = ministry;
+          ministrySelect.appendChild(option);
+        });
+
+        // Populate Department filter based on Ministry selection
+        $("ministryFilter").addEventListener("change", () => {
+          const selectedMinistry = $("ministryFilter").value;
+          const departments = selectedMinistry ? 
+            allData.filter(item => item.ministry === selectedMinistry).map(item => item.department) : 
+            [...new Set(allData.map(item => item.department))];
+
+          const departmentSelect = $("departmentFilter");
+          departmentSelect.innerHTML = "<option value=''>เลือกกรม</option>"; // Reset departments
+          departments.forEach(department => {
+            const option = document.createElement("option");
+            option.value = department;
+            option.textContent = department;
+            departmentSelect.appendChild(option);
+          });
+        });
+
+        filterData(); // Initial data render
       });
   </script>
 </body>
