@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>📊 การใช้งานระบบ DPIS6</title>
+  <title>📊 หน้าตรวจสอบการใช้งานระบบ</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 text-gray-800 p-4">
   <div class="max-w-7xl mx-auto">
-    <h2 class="text-3xl font-semibold mb-6 text-blue-600">📊 การใช้งานระบบ DPIS6</h2>
+    <h2 class="text-3xl font-bold text-blue-700 mb-6">📊 หน้าตรวจสอบการใช้งานระบบ</h2>
 
     <!-- Search and Filters -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -114,7 +114,6 @@
       renderData(allData);
     }
 
-    // Filter Events
     document.querySelectorAll("select").forEach(select => {
       select.addEventListener("change", filterData);
     });
@@ -125,50 +124,38 @@
 
     $("clearBtn").addEventListener("click", resetFilters);
 
+    const populateSelect = (id, options) => {
+      const select = $(id);
+      options.forEach(text => {
+        const opt = document.createElement("option");
+        opt.value = opt.textContent = text;
+        select.appendChild(opt);
+      });
+    };
+
     fetch(sheetURL)
       .then(res => res.text())
       .then(text => {
         const json = JSON.parse(text.substring(47).slice(0, -2));
-        allData = json.table.rows.slice(1).map(row => ({
+        const rows = json.table.rows.slice(1); // skip header
+        allData = rows.map(row => ({
           ministry: row.c[0]?.v || "",
           department: row.c[1]?.v || "",
           status: row.c[2]?.v || "",
           location: row.c[3]?.v || "",
-          type: row.c[4]?.v || "",
-          owner: row.c[5]?.v || "",
-          usage: row.c[6]?.v || "",
-          domain: row.c[7]?.v || ""
-        }));
+          type: row.c[6]?.v || "",
+          owner: row.c[7]?.v || "",
+          usage: row.c[8]?.v || "",
+          domain: row.c[9]?.v || ""
+        })).filter(row => row.department);
 
-        const ministries = [...new Set(allData.map(i => i.ministry))].sort();
-        const departments = [...new Set(allData.map(i => i.department))].sort();
-
-        ministries.forEach(val => {
-          const opt = document.createElement("option");
-          opt.value = opt.textContent = val;
-          $("ministryFilter").appendChild(opt);
-        });
-
-        departments.forEach(val => {
-          const opt = document.createElement("option");
-          opt.value = opt.textContent = val;
-          $("departmentFilter").appendChild(opt);
-        });
+        const ministries = [...new Set(allData.map(item => item.ministry).filter(Boolean))];
+        const departments = [...new Set(allData.map(item => item.department).filter(Boolean))];
+        populateSelect("ministryFilter", ministries);
+        populateSelect("departmentFilter", departments);
 
         renderData(allData);
       });
   </script>
-
-  <style>
-    .filter-select {
-      width: 100%;
-      border: 1px solid #ccc;
-      padding: 0.5rem;
-      border-radius: 0.5rem;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-      background-color: white;
-      font-size: 0.95rem;
-    }
-  </style>
 </body>
 </html>
