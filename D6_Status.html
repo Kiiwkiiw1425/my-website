@@ -241,10 +241,7 @@
 
         // Populate select options
         populateSelect("ministryFilter", [...new Set(allData.map(d => d.ministry))]);
-        populateSelect("locationFilter", [...new Set(allData.map(d => d.location))]);
-        populateSelect("setupFilter", [...new Set(allData.map(d => d.setup))]);
         populateSelect("affiliationFilter", [...new Set(allData.map(d => d.affiliation))]);
-        populateSelect("usageStatusFilter", [...new Set(allData.map(d => d.usage))]);
       });
   </script>
 </body>
