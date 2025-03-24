@@ -190,7 +190,6 @@
           usage: row.c[6]?.v || ""           // สถานะการใช้งาน
         })).filter(row => row.department);
 
-        const ministries = [...new Set(allData.map(item => item.ministry).filter(Boolean))];
         const affiliations = [...new Set(allData.map(item => item.affiliation).filter(Boolean))];
 
         populateSelect("ministryFilter", ministries);
