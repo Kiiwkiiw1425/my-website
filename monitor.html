@@ -139,16 +139,20 @@
       $("notTransferredCount").textContent = data.filter(item => item.status.toLowerCase() === "ยังไม่ถ่ายโอน").length;
 
       data.forEach(item => {
-        list.innerHTML += `
-          <div class="bg-white shadow rounded-xl p-4 border-l-4 ${item.usage === 'ยังใช้งานอยู่' ? 'border-green-500' : 'border-red-500'}">
-            <h3 class="text-lg font-bold text-gray-800">${item.department}</h3>
-            <p class="text-sm text-gray-600">กระทรวง: ${item.ministry}</p>
-            <p class="text-sm text-gray-600">สถานะ: ${item.status}</p>
-            <p class="text-sm text-gray-600">ติดตั้งที่: ${item.location}</p>
-            <p class="text-sm text-gray-600">การติดตั้ง: ${item.setup}</p>
-            <p class="text-sm text-gray-600">สังกัด: ${item.affiliation}</p>
-            <p class="text-sm text-gray-600">สถานะการใช้งาน: ${item.usage}</p>
-          </div>`;
+        const card = document.createElement("div");
+        card.classList.add("bg-white", "shadow", "rounded-xl", "p-4", "border-l-4", item.usage === 'ยังใช้งานอยู่' ? 'border-green-500' : 'border-red-500');
+
+        card.innerHTML = `
+          <h3 class="text-lg font-bold text-gray-800">${item.department}</h3>
+          <p class="text-sm text-gray-600">กระทรวง: ${item.ministry}</p>
+          <p class="text-sm text-gray-600">สถานะ: ${item.status}</p>
+          <p class="text-sm text-gray-600">ติดตั้งที่: ${item.location}</p>
+          <p class="text-sm text-gray-600">การติดตั้ง: ${item.setup}</p>
+          <p class="text-sm text-gray-600">สังกัด: ${item.affiliation}</p>
+          <p class="text-sm text-gray-600">สถานะการใช้งาน: ${item.usage}</p>
+        `;
+
+        list.appendChild(card);
       });
     };
 
@@ -190,6 +194,7 @@
           usage: row.c[6]?.v || ""           // สถานะการใช้งาน
         })).filter(row => row.department);
 
+        const ministries = [...new Set(allData.map(item => item.ministry).filter(Boolean))];
         const affiliations = [...new Set(allData.map(item => item.affiliation).filter(Boolean))];
 
         populateSelect("ministryFilter", ministries);
