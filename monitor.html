@@ -194,12 +194,14 @@
           usage: row.c[6]?.v || ""           // สถานะการใช้งาน
         })).filter(row => row.department);
 
+        renderData(allData);
+
         const ministries = [...new Set(allData.map(item => item.ministry).filter(Boolean))];
 
         populateSelect("ministryFilter", ministries);
         populateSelect("affiliationFilter", affiliations);
 
-        renderData(allData);
+
       });
   </script>
 </body>
