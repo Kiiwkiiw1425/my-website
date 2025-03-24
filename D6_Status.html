@@ -6,7 +6,6 @@
   <title>📊 การใช้งานระบบ DPIS6</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 </head>
 <body class="bg-gray-50 text-gray-800 p-4">
   <div class="max-w-7xl mx-auto">
@@ -74,28 +73,7 @@
       </div>
     </div>
 
-      <!-- Summary with Chart -->
-      <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6 text-center">
-        <div class="bg-white shadow rounded-lg p-4">
-          <p class="text-sm text-gray-500">จำนวนกรม</p>
-          <p id="totalDept" class="text-xl font-bold text-blue-600">0</p>
-        </div>
-        <div class="bg-white shadow rounded-lg p-4">
-          <p class="text-sm text-gray-500">ติดตั้งแล้วเสร็จ</p>
-          <p id="installedCount" class="text-xl font-bold text-green-600">0</p>
-        </div>
-        <div class="bg-white shadow rounded-lg p-4">
-          <p class="text-sm text-gray-500">ยังไม่ถ่ายโอน</p>
-          <p id="notTransferredCount" class="text-xl font-bold text-red-600">0</p>
-        </div>
-        <div class="bg-white shadow rounded-lg p-4">
-          <p class="text-sm text-gray-500">กราฟสถานะ</p>
-          <canvas id="statusChart" class="w-full h-32"></canvas>
-        </div>
-      </div>
-
-
-    <!-- Summary -->
+    <!-- Summary with Chart -->
     <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6 text-center">
       <div class="bg-white shadow rounded-lg p-4">
         <p class="text-sm text-gray-500">จำนวนกรม</p>
@@ -109,6 +87,10 @@
         <p class="text-sm text-gray-500">ยังไม่ถ่ายโอน</p>
         <p id="notTransferredCount" class="text-xl font-bold text-red-600">0</p>
       </div>
+      <div class="bg-white shadow rounded-lg p-4">
+        <p class="text-sm text-gray-500">กราฟสถานะ</p>
+        <canvas id="statusChart" class="w-full h-32"></canvas>
+      </div>
     </div>
 
     <!-- Results -->
@@ -120,6 +102,7 @@
     const $ = id => document.getElementById(id);
     const sheetURL = "https://docs.google.com/spreadsheets/d/1xRqnFHRWL3l_-6-LNJ_LM5Bejiv0aV5JwcV9PtzC-Nk/gviz/tq?sheet=from_Excel_list_covert&tqx=out:json";
     let allData = [];
+    let statusChart;
 
     const filterData = () => {
       const search = $("searchInput").value.trim().toLowerCase();
@@ -141,6 +124,7 @@
       });
 
       renderData(filtered);
+      updateChart(filtered);
     };
 
     const renderData = (data) => {
@@ -179,10 +163,45 @@
       });
     };
 
+    const updateChart = (data) => {
+      const installed = data.filter(item => item.status.toLowerCase() === "ติดตั้งแล้วเสร็จ").length;
+      const notTransferred = data.filter(item => item.status.toLowerCase() === "ยังไม่ถ่ายโอน").length;
+
+      const chartData = {
+        labels: ["ติดตั้งแล้วเสร็จ", "ยังไม่ถ่ายโอน"],
+        datasets: [{
+          label: "สถานะ",
+          data: [installed, notTransferred],
+          backgroundColor: ["#4CAF50", "#F44336"],
+          borderColor: ["#388E3C", "#D32F2F"],
+          borderWidth: 1
+        }]
+      };
+
+      if (statusChart) {
+        statusChart.destroy();
+      }
+
+      const ctx = $("statusChart").getContext("2d");
+      statusChart = new Chart(ctx, {
+        type: "bar",
+        data: chartData,
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    };
+
     const resetFilters = () => {
       ["searchInput", "ministryFilter", "statusFilter", "locationFilter", "setupFilter", "affiliationFilter", "usageStatusFilter"]
         .forEach(id => $(id).value = "");
       renderData(allData);
+      updateChart(allData);
     };
 
     const populateSelect = (id, options) => {
@@ -218,13 +237,14 @@
         })).filter(row => row.department);
 
         renderData(allData);
+        updateChart(allData);
 
-        const ministries = [...new Set(allData.map(item => item.ministry).filter(Boolean))];
-
-        populateSelect("ministryFilter", ministries);
-        populateSelect("affiliationFilter", affiliations);
-
-
+        // Populate select options
+        populateSelect("ministryFilter", [...new Set(allData.map(d => d.ministry))]);
+        populateSelect("locationFilter", [...new Set(allData.map(d => d.location))]);
+        populateSelect("setupFilter", [...new Set(allData.map(d => d.setup))]);
+        populateSelect("affiliationFilter", [...new Set(allData.map(d => d.affiliation))]);
+        populateSelect("usageStatusFilter", [...new Set(allData.map(d => d.usage))]);
       });
   </script>
 </body>
