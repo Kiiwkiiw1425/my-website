@@ -13,6 +13,13 @@
 </head>
 <body class="bg-gray-50 text-gray-800 p-4">
   <div class="max-w-6xl mx-auto">
+    <!-- Back Button -->
+    <div class="mb-4">
+      <a href="index.html" class="inline-block px-6 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        &lt; กลับ
+      </a>
+    </div>
+
     <h2 class="text-3xl font-semibold mb-6 text-left text-blue-600">📢 อัปเดตระบบ DPIS</h2>
 
     <!-- Filters Section -->
@@ -148,16 +155,21 @@
 
         if (status === "lastUpdate") {
           const targetMonth = month || getCurrentMonth(); // ถ้ามีการเลือกเดือน ให้ใช้ค่านั้น
-          filtered = allPosts
-            .filter(p => p.month === targetMonth && p.detail && p.detail !== "ไม่มีอัปเดต")
-            .slice(0, 7)
-      } else if (status === "hasUpdate") {
-        filtered = filtered.filter(p => p.detail && p.detail !== "ไม่มีอัปเดต");
-      } else if (status === "noUpdate") {
-        filtered = filtered.filter(p => p.detail === "ไม่มีอัปเดต");
-      }
+          filtered = filtered.filter(p => p.month === targetMonth && p.detail !== "ไม่มีอัปเดต").slice(0, 7); // จำกัด 7 อันดับล่าสุด
+        }
 
-      renderPosts(filtered);
+      const count = filtered.length;
+      $("postCount").textContent = count ? `(${count} รายการ)` : "";
+      $("loadingMessage").classList.add("hidden");
+      $("postsTableBody").innerHTML = filtered.length ? filtered.map(p => {
+        return `
+          <tr>
+            <td class="border px-4 py-2">${p.title}</td>
+            <td class="border px-4 py-2">${p.detail}</td>
+            <td class="border px-4 py-2">${formatThaiDate(p.date)}</td>
+          </tr>
+        `;
+      }).join("") : `<tr><td colspan="3" class="text-center p-4">ไม่พบข้อมูลที่ตรงกับเงื่อนไข</td></tr>`;
     };
 
     const resetFilters = () => {
@@ -165,56 +177,27 @@
       $("startDate").value = "";
       $("endDate").value = "";
       $("monthFilter").value = "";
-      $("updateStatus").value = ""; 
-
-      const currentMonth = getCurrentMonth();
-      const filtered = allPosts.filter(p => p.month === currentMonth && p.detail && p.detail !== "ไม่มีอัปเดต");
-      renderPosts(filtered);
-
+      $("updateStatus").value = "";
       applyFilters();
     };
-    
-    const renderPosts = data => {
-      const body = $("postsTableBody");
-      $("postCount").textContent = `(${data.length} รายการ)`;
 
-      body.innerHTML = data.length
-        ? data.map(p => `
-            <tr class="border-b hover:bg-gray-50">
-              <td class="px-6 py-3 text-sm">${formatThaiDate(p.date)}</td>
-              <td class="px-6 py-3 text-sm font-semibold">${p.title || '—'}</td>
-              <td class="px-6 py-3 text-sm text-gray-600">${p.detail?.replace(/\n/g, "<br>") || 'ไม่พบข้อมูล'}</td>
-            </tr>`).join("")
-        : `<tr><td colspan="3" class="text-center py-3 text-sm text-gray-500">ไม่พบข้อมูล</td></tr>`;
-    };
-
-      fetch(sheetURL)
-        .then(res => res.text())
-        .then(text => {
-          const json = JSON.parse(text.substring(47).slice(0, -2));
-          allPosts = json.table.rows.map(row => {
-            const date = row.c[0]?.f || row.c[0]?.v || "";
-            return {
-              date,
-              title: row.c[1]?.v || "",
-              detail: row.c[2]?.v || "",
-              category: row.c[3]?.v || "",
-              month: extractMonth(date),
-              sortDate: parseThaiDate(date)
-            };
-          }).sort((a, b) => b.sortDate - a.sortDate);
-      
-          fillDropdowns();
-          updateStatusDropdown();
-          
-          // ✅ ตั้งค่า default ให้แสดงรายการที่มีการอัปเดตในเดือนปัจจุบัน
-          $("updateStatus").value = "";
-          $("monthFilter").value = getCurrentMonth();
-          applyFilters();
-      
-          $("loadingMessage").style.display = "none";
+    fetch(sheetURL)
+      .then(response => response.text())
+      .then(data => {
+        const json = JSON.parse(data.replace(/google.visualization.Query.setResponse\((.*)\)/, "$1"));
+        allPosts = json.table.rows.map(r => {
+          return {
+            date: r.c[0].v,
+            title: r.c[1].v,
+            detail: r.c[2]?.v || "ไม่มีอัปเดต",
+            month: extractMonth(r.c[0].v)
+          };
         });
 
+        fillDropdowns();
+        updateStatusDropdown();
+        applyFilters();
+      });
   </script>
 </body>
 </html>
