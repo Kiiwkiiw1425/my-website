@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>📊 การใช้งานระบบ DPIS6</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 </head>
 <body class="bg-gray-50 text-gray-800 p-4">
   <div class="max-w-7xl mx-auto">
@@ -71,6 +73,27 @@
         </select>
       </div>
     </div>
+
+      <!-- Summary with Chart -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6 text-center">
+        <div class="bg-white shadow rounded-lg p-4">
+          <p class="text-sm text-gray-500">จำนวนกรม</p>
+          <p id="totalDept" class="text-xl font-bold text-blue-600">0</p>
+        </div>
+        <div class="bg-white shadow rounded-lg p-4">
+          <p class="text-sm text-gray-500">ติดตั้งแล้วเสร็จ</p>
+          <p id="installedCount" class="text-xl font-bold text-green-600">0</p>
+        </div>
+        <div class="bg-white shadow rounded-lg p-4">
+          <p class="text-sm text-gray-500">ยังไม่ถ่ายโอน</p>
+          <p id="notTransferredCount" class="text-xl font-bold text-red-600">0</p>
+        </div>
+        <div class="bg-white shadow rounded-lg p-4">
+          <p class="text-sm text-gray-500">กราฟสถานะ</p>
+          <canvas id="statusChart" class="w-full h-32"></canvas>
+        </div>
+      </div>
+
 
     <!-- Summary -->
     <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6 text-center">
