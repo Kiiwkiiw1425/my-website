@@ -42,6 +42,7 @@
           <option value="">ทั้งหมด</option>
           <option value="OWNER">OWNER</option>
           <option value="OCSC">OCSC</option>
+          <option value="GDCC">GDCC</option>
         </select>
       </div>
       <div>
@@ -180,8 +181,8 @@
         const rows = json.table.rows.slice(1);
 
         allData = rows.map(row => ({
-          department: row.c[1]?.v || "",     // ชื่อหน่วยงาน
           ministry: row.c[0]?.v || "",       // กระทรวง
+          department: row.c[1]?.v || "",     // ชื่อหน่วยงาน
           status: row.c[2]?.v || "",         // สถานะ
           location: row.c[3]?.v || "",       // ติดตั้งที่
           setup: row.c[4]?.v || "",          // การติดตั้ง
