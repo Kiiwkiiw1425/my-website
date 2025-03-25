@@ -5,33 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>หน้าแรก - DPIS</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script>
-        async function checkLIFF() {
-            try {
-                await liff.init({ liffId: "2007112884-0jmpJGWo" }); // ใส่ LIFF ID 
-                const context = liff.getContext();
-                
-                if (!context || !context.type) {
-                    // ❌ ถ้าไม่ได้เปิดจาก LIFF ให้ Redirect ไปที่ LINE OA
-                    window.location.href = "https://line.me/R/";
-                }
-            } catch (error) {
-                console.error("LIFF Init Error:", error);
-                window.location.href = "https://line.me/R/";
-            }
-        }
-
-        document.addEventListener("DOMContentLoaded", function () {
-            // 🔹 ตรวจสอบว่าเปิดจาก LINE หรือไม่ (วิธีสำรอง)
-            const isLineApp = /Line/i.test(navigator.userAgent);
-            if (!isLineApp) {
-                window.location.href = "https://line.me/R/";
-            } else {
-                checkLIFF(); // ตรวจสอบ LIFF
-            }
-        });
-    </script>
     <style>
         body {
             font-family: 'Arial', sans-serif;
