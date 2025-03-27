@@ -150,8 +150,12 @@
 
       data.forEach(item => {
         const card = document.createElement("div");
-        card.classList.add("bg-white", "shadow", "rounded-xl", "p-4", "border-l-4", item.usage === 'ยังใช้งานอยู่' ? 'border-green-500' : 'border-red-500');
-
+        const borderColor = item.usage === 'ยังใช้งานอยู่' ? 'border-green-500' :
+                            item.usage === 'เลิกใช้งาน DPIS' ? 'border-red-500' :
+                            item.usage === 'ไม่มีการเคลื่อนไหว' ? 'border-yellow-500' : 'border-gray-400';
+      
+        card.classList.add("bg-white", "shadow", "rounded-xl", "p-4", "border-l-4", borderColor);
+      
         card.innerHTML = `
           <h3 class="text-lg font-bold text-gray-800">${item.department}</h3>
           <p class="text-sm text-gray-600">กระทรวง: ${item.ministry}</p>
@@ -161,7 +165,7 @@
           <p class="text-sm text-gray-600">สังกัด: ${item.affiliation}</p>
           <p class="text-sm text-gray-600">สถานะการใช้งาน: ${item.usage}</p>
         `;
-
+      
         list.appendChild(card);
       });
     };
