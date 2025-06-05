@@ -76,7 +76,7 @@
         <select id="usageStatusFilter" class="w-full border rounded-lg px-3 py-2">
           <option value="">ทั้งหมด</option>
           <option value="ยังใช้งานอยู่">ยังใช้งานอยู่</option>
-          <option value="เลิกใช้งาน dpis">เลิกใช้งาน DPIS</option>
+          <option value="เลิกใช้งาน DPIS">เลิกใช้งาน DPIS</option>
           <option value="ไม่มีการเคลื่อนไหว">ไม่มีการเคลื่อนไหว</option>
         </select>
       </div>
@@ -160,8 +160,8 @@
           <h3 class="text-lg font-bold text-gray-800">${item.department}</h3>
           <p class="text-sm text-gray-600">กระทรวง: ${item.ministry}</p>
           <p class="text-sm text-gray-600">สถานะ: ${item.status}</p>
-          <p class="text-sm text-gray-600">การติดตั้ง: ${item.location}</p>
-          <p class="text-sm text-gray-600">ติดตั้งที่: ${item.setup}</p>
+          <p class="text-sm text-gray-600">การติดตั้ง: ${item.setup}</p>
+          <p class="text-sm text-gray-600">ติดตั้งที่: ${item.location}</p>
           <p class="text-sm text-gray-600">สังกัด: ${item.affiliation}</p>
           <p class="text-sm text-gray-600">สถานะการใช้งาน: ${item.usage}</p>
         `;
@@ -199,23 +199,19 @@
         const rows = json.table.rows.slice(1);
 
         allData = rows.map(row => ({
-          ministry: row.c[0]?.v || "",       // กระทรวง
-          department: row.c[1]?.v || "",     // ชื่อหน่วยงาน
-          status: row.c[2]?.v || "",         // สถานะ
-          location: row.c[3]?.v || "",       // ติดตั้งที่
-          setup: row.c[4]?.v || "",          // การติดตั้ง
-          affiliation: row.c[5]?.v || "",    // สังกัด
-          usage: row.c[6]?.v || ""           // สถานะการใช้งาน
-        })).filter(row => row.department);
+          ministry: row.c[0]?.v || "",
+          department: row.c[1]?.v || "",
+          status: row.c[2]?.v || "",
+          location: row.c[3]?.v || "",
+          setup: row.c[4]?.v || "",
+          affiliation: row.c[5]?.v || "",
+          usage: row.c[6]?.v || "",
+        }));
 
         renderData(allData);
 
-        const ministries = [...new Set(allData.map(item => item.ministry).filter(Boolean))];
-
+        const ministries = [...new Set(allData.map(i => i.ministry).filter(Boolean))].sort();
         populateSelect("ministryFilter", ministries);
-        populateSelect("affiliationFilter", affiliations);
-
-
       });
   </script>
 </body>
