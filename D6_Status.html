@@ -11,7 +11,7 @@
     
     <!-- Back Button -->
     <div class="mb-4">
-      <a href="index.html" class="inline-block px-6 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700">
+      <a href="index.html" class="inline-block px-6 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 ml-auto">
         &lt; กลับ
       </a>
     </div>
@@ -20,7 +20,7 @@
       <h1 class="text-4xl font-bold text-blue-600">📊 การใช้งานระบบ DPIS6</h1>
     </header>
 
-    <!-- Search & Filters -->
+    <!-- Search & Controls -->
     <div class="flex flex-wrap gap-4 mb-6 items-end">
       <div class="flex-grow">
         <label class="block text-sm font-medium mb-1">ค้นหาชื่อหน่วยงาน</label>
@@ -30,10 +30,13 @@
       <button id="clearBtn" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">ล้าง</button>
     </div>
 
+    <!-- Filters -->
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
       <div>
         <label class="block mb-1 font-medium">กระทรวง</label>
-        <select id="ministryFilter" class="w-full border rounded-lg px-3 py-2"><option value="">ทั้งหมด</option></select>
+        <select id="ministryFilter" class="w-full border rounded-lg px-3 py-2">
+          <option value="">ทั้งหมด</option>
+        </select>
       </div>
       <div>
         <label class="block mb-1 font-medium">สถานะ</label>
@@ -45,19 +48,27 @@
       </div>
       <div>
         <label class="block mb-1 font-medium">ติดตั้งที่</label>
-        <select id="locationFilter" class="w-full border rounded-lg px-3 py-2"><option value="">ทั้งหมด</option></select>
+        <select id="locationFilter" class="w-full border rounded-lg px-3 py-2">
+          <option value="">ทั้งหมด</option>
+        </select>
       </div>
       <div>
         <label class="block mb-1 font-medium">การติดตั้ง</label>
-        <select id="setupFilter" class="w-full border rounded-lg px-3 py-2"><option value="">ทั้งหมด</option></select>
+        <select id="setupFilter" class="w-full border rounded-lg px-3 py-2">
+          <option value="">ทั้งหมด</option>
+        </select>
       </div>
       <div>
         <label class="block mb-1 font-medium">สังกัด</label>
-        <select id="affiliationFilter" class="w-full border rounded-lg px-3 py-2"><option value="">ทั้งหมด</option></select>
+        <select id="affiliationFilter" class="w-full border rounded-lg px-3 py-2">
+          <option value="">ทั้งหมด</option>
+        </select>
       </div>
       <div>
         <label class="block mb-1 font-medium">สถานะการใช้งาน</label>
-        <select id="usageStatusFilter" class="w-full border rounded-lg px-3 py-2"><option value="">ทั้งหมด</option></select>
+        <select id="usageStatusFilter" class="w-full border rounded-lg px-3 py-2">
+          <option value="">ทั้งหมด</option>
+        </select>
       </div>
     </div>
 
@@ -98,56 +109,55 @@
 
       const filtered = allData.filter(item => {
         return (!search || item.department.toLowerCase().includes(search)) &&
-               (!ministry || item.ministry.toLowerCase() === ministry) &&
-               (!status || item.status.toLowerCase() === status) &&
-               (!location || item.location.toLowerCase() === location) &&
-               (!setup || item.setup.toLowerCase() === setup) &&
-               (!affiliation || item.affiliation.toLowerCase() === affiliation) &&
-               (!usageStatus || item.usage.toLowerCase() === usageStatus);
+          (!ministry || item.ministry.toLowerCase() === ministry) &&
+          (!status || item.status.toLowerCase() === status) &&
+          (!location || item.location.toLowerCase() === location) &&
+          (!setup || item.setup.toLowerCase() === setup) &&
+          (!affiliation || item.affiliation.toLowerCase() === affiliation) &&
+          (!usageStatus || item.usage.toLowerCase() === usageStatus);
       });
 
       renderData(filtered);
     };
 
-    const renderData = (data) => {
-      const list = $("monitorList");
-      const noData = $("noDataMsg");
-      list.innerHTML = "";
-
-      if (data.length === 0) {
-        noData.classList.remove("hidden");
-        $("totalDept").textContent = "0";
-        $("installedCount").textContent = "0";
-        $("notTransferredCount").textContent = "0";
-        return;
-      }
-
-      noData.classList.add("hidden");
-      $("totalDept").textContent = data.length;
-      $("installedCount").textContent = data.filter(item => item.status.trim().toLowerCase() === "ติดตั้งแล้วเสร็จ").length;
-      $("notTransferredCount").textContent = data.filter(item => item.status.trim().toLowerCase() === "ยังไม่ถ่ายโอน").length;
-
-      data.forEach(item => {
-        const setup = item.setup.trim().toLowerCase();
-        const borderColor =
-          setup === "production" ? "border-green-500" :
-          setup === "test" ? "border-yellow-500" :
-          "border-gray-400";
-
-        const card = document.createElement("div");
-        card.className = `bg-white shadow rounded-xl p-4 border-l-4 ${borderColor}`;
-        card.innerHTML = `
-          <h3 class="text-lg font-bold text-gray-800">${item.department}</h3>
-          <p class="text-sm text-gray-600">กระทรวง: ${item.ministry}</p>
-          <p class="text-sm text-gray-600">สถานะ: ${item.status}</p>
-          <p class="text-sm text-gray-600">ติดตั้งที่: ${item.location}</p>
-          <p class="text-sm text-gray-600">การติดตั้ง: ${item.setup}</p>
-          <p class="text-sm text-gray-600">สังกัด: ${item.affiliation}</p>
-          <p class="text-sm text-gray-600">สถานะการใช้งาน: ${item.usage}</p>
-        `;
-        list.appendChild(card);
-      });
-    };
+      const renderData = (data) => {
+        const list = $("monitorList");
+        const noData = $("noDataMsg");
+        list.innerHTML = "";
+      
+        if (data.length === 0) {
+          noData.classList.remove("hidden");
+          $("totalDept").textContent = "0";
+          $("installedCount").textContent = "0";
+          $("notTransferredCount").textContent = "0";
+          return;
+        }
+        noData.classList.add("hidden");
+      
+        $("totalDept").textContent = data.length;
+        $("installedCount").textContent = data.filter(item => item.status.toLowerCase() === "ติดตั้งแล้วเสร็จ").length;
+        $("notTransferredCount").textContent = data.filter(item => item.status.toLowerCase() === "ยังไม่ถ่ายโอน").length;
+      
+        data.forEach(item => {
+          const card = document.createElement("div");
+      
+          const borderColor = item.setup.toLowerCase() === 'production' ? 'border-green-500' :
+                              item.setup.toLowerCase() === 'test' ? 'border-yellow-500' :
+                              'border-gray-400';
+      
+          card.classList.add("bg-white", "shadow", "rounded-xl", "p-4", "border-l-4", borderColor);
+          card.innerHTML = 
+            <h3 class="text-lg font-bold text-gray-800">${item.department}</h3>
+            <p class="text-sm text-gray-600">กระทรวง: ${item.ministry}</p>
+            <p class="text-sm text-gray-600">สถานะ: ${item.status}</p>
+            <p class="text-sm text-gray-600">ติดตั้งที่: ${item.location}</p>
+            <p class="text-sm text-gray-600">การติดตั้ง: ${item.setup}</p>
+            <p class="text-sm text-gray-600">สังกัด: ${item.affiliation}</p>
+            <p class="text-sm text-gray-600">สถานะการใช้งาน: ${item.usage}</p>
+          ;
+          list.appendChild(card);
+        });
+      };
 
     const resetFilters = () => {
       ["searchInput", "ministryFilter", "statusFilter", "locationFilter", "setupFilter", "affiliationFilter", "usageStatusFilter"]
@@ -157,8 +167,10 @@
 
     const populateSelect = (id, options) => {
       const select = $(id);
-      while (select.options.length > 1) select.remove(1);
-      [...new Set(options)].sort().forEach(text => {
+      while (select.options.length > 1) {
+        select.remove(1);
+      }
+      options.forEach(text => {
         const opt = document.createElement("option");
         opt.value = opt.textContent = text;
         select.appendChild(opt);
@@ -168,6 +180,7 @@
     $("searchBtn").onclick = filterData;
     $("clearBtn").onclick = resetFilters;
     $("searchInput").addEventListener("keypress", e => { if (e.key === "Enter") filterData(); });
+
     ["ministryFilter", "statusFilter", "locationFilter", "setupFilter", "affiliationFilter", "usageStatusFilter"]
       .forEach(id => $(id).addEventListener("change", filterData));
 
@@ -189,11 +202,17 @@
 
         renderData(allData);
 
-        populateSelect("ministryFilter", allData.map(i => i.ministry));
-        populateSelect("affiliationFilter", allData.map(i => i.affiliation));
-        populateSelect("locationFilter", allData.map(i => i.location));
-        populateSelect("setupFilter", allData.map(i => i.setup));
-        populateSelect("usageStatusFilter", allData.map(i => i.usage));
+        const ministries = [...new Set(allData.map(item => item.ministry).filter(Boolean))];
+        const affiliations = [...new Set(allData.map(item => item.affiliation).filter(Boolean))];
+        const locations = [...new Set(allData.map(item => item.location).filter(Boolean))];
+        const setups = [...new Set(allData.map(item => item.setup).filter(Boolean))];
+        const usages = [...new Set(allData.map(item => item.usage).filter(Boolean))];
+
+        populateSelect("ministryFilter", ministries);
+        populateSelect("affiliationFilter", affiliations);
+        populateSelect("locationFilter", locations);
+        populateSelect("setupFilter", setups);
+        populateSelect("usageStatusFilter", usages);
       });
   </script>
 </body>
