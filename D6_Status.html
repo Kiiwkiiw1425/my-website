@@ -8,7 +8,6 @@
 </head>
 <body class="bg-gray-50 text-gray-800 p-4">
   <div class="max-w-7xl mx-auto">
-    
     <!-- Back Button -->
     <div class="mb-4">
       <a href="index.html" class="inline-block px-6 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 ml-auto">
@@ -20,7 +19,7 @@
       <h1 class="text-4xl font-bold text-blue-600">📊 การใช้งานระบบ DPIS6</h1>
     </header>
 
-    <!-- Search & Controls -->
+    <!-- Search -->
     <div class="flex flex-wrap gap-4 mb-6 items-end">
       <div class="flex-grow">
         <label class="block text-sm font-medium mb-1">ค้นหาชื่อหน่วยงาน</label>
@@ -32,60 +31,19 @@
 
     <!-- Filters -->
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
-      <div>
-        <label class="block mb-1 font-medium">กระทรวง</label>
-        <select id="ministryFilter" class="w-full border rounded-lg px-3 py-2">
-          <option value="">ทั้งหมด</option>
-        </select>
-      </div>
-      <div>
-        <label class="block mb-1 font-medium">สถานะ</label>
-        <select id="statusFilter" class="w-full border rounded-lg px-3 py-2">
-          <option value="">ทั้งหมด</option>
-          <option value="ติดตั้งแล้วเสร็จ">ติดตั้งแล้วเสร็จ</option>
-          <option value="ยังไม่ถ่ายโอน">ยังไม่ถ่ายโอน</option>
-        </select>
-      </div>
-      <div>
-        <label class="block mb-1 font-medium">ติดตั้งที่</label>
-        <select id="locationFilter" class="w-full border rounded-lg px-3 py-2">
-          <option value="">ทั้งหมด</option>
-        </select>
-      </div>
-      <div>
-        <label class="block mb-1 font-medium">การติดตั้ง</label>
-        <select id="setupFilter" class="w-full border rounded-lg px-3 py-2">
-          <option value="">ทั้งหมด</option>
-        </select>
-      </div>
-      <div>
-        <label class="block mb-1 font-medium">สังกัด</label>
-        <select id="affiliationFilter" class="w-full border rounded-lg px-3 py-2">
-          <option value="">ทั้งหมด</option>
-        </select>
-      </div>
-      <div>
-        <label class="block mb-1 font-medium">สถานะการใช้งาน</label>
-        <select id="usageStatusFilter" class="w-full border rounded-lg px-3 py-2">
-          <option value="">ทั้งหมด</option>
-        </select>
-      </div>
+      <div><label class="block mb-1 font-medium">กระทรวง</label><select id="ministryFilter" class="w-full border rounded-lg px-3 py-2"><option value="">ทั้งหมด</option></select></div>
+      <div><label class="block mb-1 font-medium">สถานะ</label><select id="statusFilter" class="w-full border rounded-lg px-3 py-2"><option value="">ทั้งหมด</option><option value="ติดตั้งแล้วเสร็จ">ติดตั้งแล้วเสร็จ</option><option value="ยังไม่ถ่ายโอน">ยังไม่ถ่ายโอน</option></select></div>
+      <div><label class="block mb-1 font-medium">ติดตั้งที่</label><select id="locationFilter" class="w-full border rounded-lg px-3 py-2"><option value="">ทั้งหมด</option></select></div>
+      <div><label class="block mb-1 font-medium">การติดตั้ง</label><select id="setupFilter" class="w-full border rounded-lg px-3 py-2"><option value="">ทั้งหมด</option></select></div>
+      <div><label class="block mb-1 font-medium">สังกัด</label><select id="affiliationFilter" class="w-full border rounded-lg px-3 py-2"><option value="">ทั้งหมด</option></select></div>
+      <div><label class="block mb-1 font-medium">สถานะการใช้งาน</label><select id="usageStatusFilter" class="w-full border rounded-lg px-3 py-2"><option value="">ทั้งหมด</option></select></div>
     </div>
 
     <!-- Summary -->
     <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6 text-center">
-      <div class="bg-white shadow rounded-lg p-4">
-        <p class="text-sm text-gray-500">จำนวนกรม</p>
-        <p id="totalDept" class="text-xl font-bold text-blue-600">0</p>
-      </div>
-      <div class="bg-white shadow rounded-lg p-4">
-        <p class="text-sm text-gray-500">ติดตั้งแล้วเสร็จ</p>
-        <p id="installedCount" class="text-xl font-bold text-green-600">0</p>
-      </div>
-      <div class="bg-white shadow rounded-lg p-4">
-        <p class="text-sm text-gray-500">ยังไม่ถ่ายโอน</p>
-        <p id="notTransferredCount" class="text-xl font-bold text-red-600">0</p>
-      </div>
+      <div class="bg-white shadow rounded-lg p-4"><p class="text-sm text-gray-500">จำนวนกรม</p><p id="totalDept" class="text-xl font-bold text-blue-600">0</p></div>
+      <div class="bg-white shadow rounded-lg p-4"><p class="text-sm text-gray-500">ติดตั้งแล้วเสร็จ</p><p id="installedCount" class="text-xl font-bold text-green-600">0</p></div>
+      <div class="bg-white shadow rounded-lg p-4"><p class="text-sm text-gray-500">ยังไม่ถ่ายโอน</p><p id="notTransferredCount" class="text-xl font-bold text-red-600">0</p></div>
     </div>
 
     <!-- Results -->
@@ -107,15 +65,15 @@
       const affiliation = $("affiliationFilter").value.toLowerCase();
       const usageStatus = $("usageStatusFilter").value.toLowerCase();
 
-      const filtered = allData.filter(item => {
-        return (!search || item.department.toLowerCase().includes(search)) &&
-          (!ministry || item.ministry.toLowerCase() === ministry) &&
-          (!status || item.status.toLowerCase() === status) &&
-          (!location || item.location.toLowerCase() === location) &&
-          (!setup || item.setup.toLowerCase() === setup) &&
-          (!affiliation || item.affiliation.toLowerCase() === affiliation) &&
-          (!usageStatus || item.usage.toLowerCase() === usageStatus);
-      });
+      const filtered = allData.filter(item =>
+        (!search || item.department.toLowerCase().includes(search)) &&
+        (!ministry || item.ministry.toLowerCase() === ministry) &&
+        (!status || item.status.toLowerCase() === status) &&
+        (!location || item.location.toLowerCase() === location) &&
+        (!setup || item.setup.toLowerCase() === setup) &&
+        (!affiliation || item.affiliation.toLowerCase() === affiliation) &&
+        (!usageStatus || item.usage.toLowerCase() === usageStatus)
+      );
 
       renderData(filtered);
     };
@@ -132,19 +90,22 @@
         $("notTransferredCount").textContent = "0";
         return;
       }
-      noData.classList.add("hidden");
 
+      noData.classList.add("hidden");
       $("totalDept").textContent = data.length;
-      $("installedCount").textContent = data.filter(item => item.status.toLowerCase() === "ติดตั้งแล้วเสร็จ").length;
-      $("notTransferredCount").textContent = data.filter(item => item.status.toLowerCase() === "ยังไม่ถ่ายโอน").length;
+      $("installedCount").textContent = data.filter(item => item.status === "ติดตั้งแล้วเสร็จ").length;
+      $("notTransferredCount").textContent = data.filter(item => item.status === "ยังไม่ถ่ายโอน").length;
 
       data.forEach(item => {
-        const card = document.createElement("div");
-        const borderColor = item.usage === 'ยังใช้งานอยู่' ? 'border-green-500' :
-                            item.usage === 'เลิกใช้งาน DPIS' ? 'border-red-500' :
-                            item.usage === 'ไม่มีการเคลื่อนไหว' ? 'border-yellow-500' : 'border-gray-400';
+        const usage = item.usage.trim();
+        const borderColor =
+          usage === "ยังใช้งานอยู่" ? "border-green-500" :
+          usage === "เลิกใช้งาน DPIS" ? "border-red-500" :
+          usage === "ไม่มีการเคลื่อนไหว" ? "border-yellow-500" :
+          "border-gray-400";
 
-        card.classList.add("bg-white", "shadow", "rounded-xl", "p-4", "border-l-4", borderColor);
+        const card = document.createElement("div");
+        card.className = `bg-white shadow rounded-xl p-4 border-l-4 ${borderColor}`;
         card.innerHTML = `
           <h3 class="text-lg font-bold text-gray-800">${item.department}</h3>
           <p class="text-sm text-gray-600">กระทรวง: ${item.ministry}</p>
@@ -166,10 +127,8 @@
 
     const populateSelect = (id, options) => {
       const select = $(id);
-      while (select.options.length > 1) {
-        select.remove(1);
-      }
-      options.forEach(text => {
+      while (select.options.length > 1) select.remove(1);
+      [...new Set(options)].sort().forEach(text => {
         const opt = document.createElement("option");
         opt.value = opt.textContent = text;
         select.appendChild(opt);
@@ -179,7 +138,6 @@
     $("searchBtn").onclick = filterData;
     $("clearBtn").onclick = resetFilters;
     $("searchInput").addEventListener("keypress", e => { if (e.key === "Enter") filterData(); });
-
     ["ministryFilter", "statusFilter", "locationFilter", "setupFilter", "affiliationFilter", "usageStatusFilter"]
       .forEach(id => $(id).addEventListener("change", filterData));
 
@@ -188,7 +146,6 @@
       .then(text => {
         const json = JSON.parse(text.substring(47).slice(0, -2));
         const rows = json.table.rows.slice(1);
-
         allData = rows.map(row => ({
           ministry: row.c[0]?.v || "",
           department: row.c[1]?.v || "",
@@ -200,18 +157,11 @@
         })).filter(row => row.department);
 
         renderData(allData);
-
-        const ministries = [...new Set(allData.map(item => item.ministry).filter(Boolean))];
-        const affiliations = [...new Set(allData.map(item => item.affiliation).filter(Boolean))];
-        const locations = [...new Set(allData.map(item => item.location).filter(Boolean))];
-        const setups = [...new Set(allData.map(item => item.setup).filter(Boolean))];
-        const usages = [...new Set(allData.map(item => item.usage).filter(Boolean))];
-
-        populateSelect("ministryFilter", ministries);
-        populateSelect("affiliationFilter", affiliations);
-        populateSelect("locationFilter", locations);
-        populateSelect("setupFilter", setups);
-        populateSelect("usageStatusFilter", usages);
+        populateSelect("ministryFilter", allData.map(i => i.ministry));
+        populateSelect("affiliationFilter", allData.map(i => i.affiliation));
+        populateSelect("locationFilter", allData.map(i => i.location));
+        populateSelect("setupFilter", allData.map(i => i.setup));
+        populateSelect("usageStatusFilter", allData.map(i => i.usage));
       });
   </script>
 </body>
