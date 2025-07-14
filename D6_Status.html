@@ -50,17 +50,12 @@
         <label class="block mb-1 font-medium">ติดตั้งที่</label>
         <select id="locationFilter" class="w-full border rounded-lg px-3 py-2">
           <option value="">ทั้งหมด</option>
-          <option value="OWNER">OWNER</option>
-          <option value="OCSC">OCSC</option>
-          <option value="GDCC">GDCC</option>
         </select>
       </div>
       <div>
         <label class="block mb-1 font-medium">การติดตั้ง</label>
         <select id="setupFilter" class="w-full border rounded-lg px-3 py-2">
           <option value="">ทั้งหมด</option>
-          <option value="production">Production</option>
-          <option value="test">Test</option>
         </select>
       </div>
       <div>
@@ -73,9 +68,6 @@
         <label class="block mb-1 font-medium">สถานะการใช้งาน</label>
         <select id="usageStatusFilter" class="w-full border rounded-lg px-3 py-2">
           <option value="">ทั้งหมด</option>
-          <option value="ยังใช้งานอยู่">ยังใช้งานอยู่</option>
-          <option value="เลิกใช้งาน DPIS">เลิกใช้งาน DPIS</option>
-          <option value="ไม่มีการเคลื่อนไหว">ไม่มีการเคลื่อนไหว</option>
         </select>
       </div>
     </div>
@@ -174,7 +166,6 @@
 
     const populateSelect = (id, options) => {
       const select = $(id);
-      // ล้าง option เดิม (ยกเว้น "ทั้งหมด")
       while (select.options.length > 1) {
         select.remove(1);
       }
@@ -202,19 +193,25 @@
           ministry: row.c[0]?.v || "",
           department: row.c[1]?.v || "",
           status: row.c[2]?.v || "",
-          location: row.c[3]?.v || "",
-          setup: row.c[4]?.v || "",
+          usage: row.c[3]?.v || "",
+          location: row.c[4]?.v || "",
           affiliation: row.c[5]?.v || "",
-          usage: row.c[6]?.v || ""
+          setup: row.c[6]?.v || ""
         })).filter(row => row.department);
 
         renderData(allData);
 
         const ministries = [...new Set(allData.map(item => item.ministry).filter(Boolean))];
         const affiliations = [...new Set(allData.map(item => item.affiliation).filter(Boolean))];
+        const locations = [...new Set(allData.map(item => item.location).filter(Boolean))];
+        const setups = [...new Set(allData.map(item => item.setup).filter(Boolean))];
+        const usages = [...new Set(allData.map(item => item.usage).filter(Boolean))];
 
         populateSelect("ministryFilter", ministries);
         populateSelect("affiliationFilter", affiliations);
+        populateSelect("locationFilter", locations);
+        populateSelect("setupFilter", setups);
+        populateSelect("usageStatusFilter", usages);
       });
   </script>
 </body>
