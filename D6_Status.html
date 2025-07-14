@@ -121,46 +121,60 @@
     };
 
     const renderData = (data) => {
-  const list = $("monitorList");
-  const noData = $("noDataMsg");
-  list.innerHTML = "";
+      const list = $("monitorList");
+      const noData = $("noDataMsg");
+      list.innerHTML = "";
 
-  if (data.length === 0) {
-    noData.classList.remove("hidden");
-    $("totalDept").textContent = "0";
-    $("installedCount").textContent = "0";
-    $("notTransferredCount").textContent = "0";
-    return;
-  }
+      if (data.length === 0) {
+        noData.classList.remove("hidden");
+        $("totalDept").textContent = "0";
+        $("installedCount").textContent = "0";
+        $("notTransferredCount").textContent = "0";
+        return;
+      }
+      noData.classList.add("hidden");
 
-  noData.classList.add("hidden");
-  $("totalDept").textContent = data.length;
-  $("installedCount").textContent = data.filter(item => item.status === "ติดตั้งแล้วเสร็จ").length;
-  $("notTransferredCount").textContent = data.filter(item => item.status === "ยังไม่ถ่ายโอน").length;
+      $("totalDept").textContent = data.length;
+      $("installedCount").textContent = data.filter(item => item.status.toLowerCase() === "ติดตั้งแล้วเสร็จ").length;
+      $("notTransferredCount").textContent = data.filter(item => item.status.toLowerCase() === "ยังไม่ถ่ายโอน").length;
 
-  data.forEach(item => {
-    const usage = item.usage.toLowerCase();
-    const borderColor =
-      usage.includes("ยังใช้งาน") ? "border-green-500" :
-      usage.includes("เลิกใช้งาน") ? "border-red-500" :
-      usage.includes("ไม่มีการเคลื่อนไหว") ? "border-yellow-500" :
-      "border-gray-400";
+      data.forEach(item => {
+        const card = document.createElement("div");
+        const borderColor = item.usage === 'ยังใช้งานอยู่' ? 'border-green-500' :
+                            item.usage === 'เลิกใช้งาน DPIS' ? 'border-red-500' :
+                            item.usage === 'ไม่มีการเคลื่อนไหว' ? 'border-yellow-500' : 'border-gray-400';
 
-    const card = document.createElement("div");
-    card.className = `bg-white shadow rounded-xl p-4 border-l-4 ${borderColor}`;
-    card.innerHTML = `
-      <h3 class="text-lg font-bold text-gray-800">${item.department}</h3>
-      <p class="text-sm text-gray-600">กระทรวง: ${item.ministry}</p>
-      <p class="text-sm text-gray-600">สถานะ: ${item.status}</p>
-      <p class="text-sm text-gray-600">ติดตั้งที่: ${item.location}</p>
-      <p class="text-sm text-gray-600">การติดตั้ง: ${item.setup}</p>
-      <p class="text-sm text-gray-600">สังกัด: ${item.affiliation}</p>
-      <p class="text-sm text-gray-600">สถานะการใช้งาน: ${item.usage}</p>
-    `;
-    list.appendChild(card);
-  });
-};
+        card.classList.add("bg-white", "shadow", "rounded-xl", "p-4", "border-l-4", borderColor);
+        card.innerHTML = `
+          <h3 class="text-lg font-bold text-gray-800">${item.department}</h3>
+          <p class="text-sm text-gray-600">กระทรวง: ${item.ministry}</p>
+          <p class="text-sm text-gray-600">สถานะ: ${item.status}</p>
+          <p class="text-sm text-gray-600">ติดตั้งที่: ${item.location}</p>
+          <p class="text-sm text-gray-600">การติดตั้ง: ${item.setup}</p>
+          <p class="text-sm text-gray-600">สังกัด: ${item.affiliation}</p>
+          <p class="text-sm text-gray-600">สถานะการใช้งาน: ${item.usage}</p>
+        `;
+        list.appendChild(card);
+      });
+    };
 
+    const resetFilters = () => {
+      ["searchInput", "ministryFilter", "statusFilter", "locationFilter", "setupFilter", "affiliationFilter", "usageStatusFilter"]
+        .forEach(id => $(id).value = "");
+      renderData(allData);
+    };
+
+    const populateSelect = (id, options) => {
+      const select = $(id);
+      while (select.options.length > 1) {
+        select.remove(1);
+      }
+      options.forEach(text => {
+        const opt = document.createElement("option");
+        opt.value = opt.textContent = text;
+        select.appendChild(opt);
+      });
+    };
 
     $("searchBtn").onclick = filterData;
     $("clearBtn").onclick = resetFilters;
