@@ -202,10 +202,10 @@
           ministry: row.c[0]?.v || "",        // A: กระทรวง
           department: row.c[1]?.v || "",      // B: Title
           status: row.c[2]?.v || "",          // C: สถานะ
-          usage: row.c[3]?.v || "",           // D: สถานะการใช้งาน
+          setup: row.c[3]?.v || "",           // D: สถานะการใช้งาน
           location: row.c[4]?.v || "",        // E: Site_Final
           affiliation: row.c[5]?.v || "",     // F: สังกัด ก.พ.
-          setup: row.c[6]?.v || ""            // G: การใช้งานจริง
+          usage: row.c[6]?.v || ""            // G: การใช้งานจริง
         })).filter(row => row.department);
         
 
