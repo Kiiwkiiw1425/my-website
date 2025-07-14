@@ -199,22 +199,29 @@
         const rows = json.table.rows.slice(1);
 
         allData = rows.map(row => ({
-          ministry: row.c[0]?.v || "",
-          department: row.c[1]?.v || "",
-          status: row.c[2]?.v || "",
-          location: row.c[3]?.v || "",
-          setup: row.c[4]?.v || "",
-          affiliation: row.c[5]?.v || "",
-          usage: row.c[6]?.v || ""
+          ministry: row.c[0]?.v || "",        // A: กระทรวง
+          department: row.c[1]?.v || "",      // B: Title
+          status: row.c[2]?.v || "",          // C: สถานะ
+          usage: row.c[3]?.v || "",           // D: สถานะการใช้งาน
+          location: row.c[4]?.v || "",        // E: Site_Final
+          affiliation: row.c[5]?.v || "",     // F: สังกัด ก.พ.
+          setup: row.c[6]?.v || ""            // G: การใช้งานจริง
         })).filter(row => row.department);
+        
 
         renderData(allData);
 
         const ministries = [...new Set(allData.map(item => item.ministry).filter(Boolean))];
         const affiliations = [...new Set(allData.map(item => item.affiliation).filter(Boolean))];
+        const locations = [...new Set(allData.map(item => item.location).filter(Boolean))];
+        const setups = [...new Set(allData.map(item => item.setup).filter(Boolean))];
+        const usages = [...new Set(allData.map(item => item.usage).filter(Boolean))];
 
         populateSelect("ministryFilter", ministries);
         populateSelect("affiliationFilter", affiliations);
+        populateSelect("locationFilter", locations);
+        populateSelect("setupFilter", setups);
+        populateSelect("usageStatusFilter", usages);
       });
   </script>
 </body>
