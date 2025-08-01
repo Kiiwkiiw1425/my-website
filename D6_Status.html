@@ -112,7 +112,7 @@
       const status = $("statusFilter").value.toLowerCase();
       const location = $("locationFilter").value.toLowerCase();
       const setup = $("setupFilter").value.toLowerCase();
-      const affiliation = $("affiliationFilter").value.toLowerCase();
+      //const affiliation = $("affiliationFilter").value.toLowerCase();
       const usageStatus = $("usageStatusFilter").value.toLowerCase();
 
       const filtered = allData.filter(item => {
@@ -121,7 +121,7 @@
           (!status || item.status.toLowerCase() === status) &&
           (!location || item.location.toLowerCase() === location) &&
           (!setup || item.setup.toLowerCase() === setup) &&
-          (!affiliation || item.affiliation.toLowerCase() === affiliation) &&
+          //(!affiliation || item.affiliation.toLowerCase() === affiliation) &&
           (!usageStatus || item.usage.toLowerCase() === usageStatus);
       });
 
@@ -159,7 +159,6 @@
           <p class="text-sm text-gray-600">สถานะ: ${item.status}</p>
           <p class="text-sm text-gray-600">ติดตั้งที่: ${item.location}</p>
           <p class="text-sm text-gray-600">การติดตั้ง: ${item.setup}</p>
-          <p class="text-sm text-gray-600">สังกัด: ${item.affiliation}</p>
           <p class="text-sm text-gray-600">สถานะการใช้งาน: ${item.usage}</p>
         `;
         list.appendChild(card);
@@ -167,7 +166,7 @@
     };
 
     const resetFilters = () => {
-      ["searchInput", "ministryFilter", "statusFilter", "locationFilter", "setupFilter", "affiliationFilter", "usageStatusFilter"]
+      ["searchInput", "ministryFilter", "statusFilter", "locationFilter", "setupFilter", "usageStatusFilter"]
         .forEach(id => $(id).value = "");
       renderData(allData);
     };
@@ -189,7 +188,7 @@
     $("clearBtn").onclick = resetFilters;
     $("searchInput").addEventListener("keypress", e => { if (e.key === "Enter") filterData(); });
 
-    ["ministryFilter", "statusFilter", "locationFilter", "setupFilter", "affiliationFilter", "usageStatusFilter"]
+    ["ministryFilter", "statusFilter", "locationFilter", "setupFilter", "usageStatusFilter"]
       .forEach(id => $(id).addEventListener("change", filterData));
 
     fetch(sheetURL)
@@ -204,7 +203,7 @@
           status: row.c[2]?.v || "",          // C: สถานะ
           setup: row.c[3]?.v || "",           // D: สถานะการใช้งาน
           location: row.c[4]?.v || "",        // E: Site_Final
-          affiliation: row.c[5]?.v || "",     // F: สังกัด ก.พ.
+          //affiliation: row.c[5]?.v || "",     // F: สังกัด ก.พ.
           usage: row.c[6]?.v || ""            // G: การใช้งานจริง
         })).filter(row => row.department);
         
@@ -212,13 +211,13 @@
         renderData(allData);
 
         const ministries = [...new Set(allData.map(item => item.ministry).filter(Boolean))];
-        const affiliations = [...new Set(allData.map(item => item.affiliation).filter(Boolean))];
+        //const affiliations = [...new Set(allData.map(item => item.affiliation).filter(Boolean))];
         const locations = [...new Set(allData.map(item => item.location).filter(Boolean))];
         const setups = [...new Set(allData.map(item => item.setup).filter(Boolean))];
         const usages = [...new Set(allData.map(item => item.usage).filter(Boolean))];
 
         populateSelect("ministryFilter", ministries);
-        populateSelect("affiliationFilter", affiliations);
+        //populateSelect("affiliationFilter", affiliations);
         populateSelect("locationFilter", locations);
         populateSelect("setupFilter", setups);
         populateSelect("usageStatusFilter", usages);
