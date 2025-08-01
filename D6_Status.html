@@ -64,6 +64,12 @@
         </select>
       </div>
       <div>
+        <label class="block mb-1 font-medium">สังกัด ก.พ.</label>
+        <select id="affiliationFilter" class="w-full border rounded-lg px-3 py-2">
+          <option value="">ทั้งหมด</option>
+        </select>
+      </div>
+      <div>
         <label class="block mb-1 font-medium">สถานะการใช้งาน</label>
         <select id="usageStatusFilter" class="w-full border rounded-lg px-3 py-2">
           <option value="">ทั้งหมด</option>
@@ -89,12 +95,20 @@
         <p id="notTransferredCount" class="text-xl font-bold text-red-600">0</p>
       </div>
       <div class="bg-white shadow rounded-lg p-4">
+        <p class="text-sm text-gray-500">เลิกใช้งาน DPIS</p>
+        <p id="inactiveDPISCount" class="text-xl font-bold text-red-600">0</p>
+      </div>
+      <div class="bg-white shadow rounded-lg p-4">
+        <p class="text-sm text-gray-500">ไม่มีการเคลื่อนไหว</p>
+        <p id="noActivityCount" class="text-xl font-bold text-yellow-600">0</p>
+      </div>
+      <div class="bg-white shadow rounded-lg p-4">
         <p class="text-sm text-gray-500">ไม่ได้ใช้งาน</p>
-        <p id="notTransferredCount" class="text-xl font-bold text-red-600">0</p>
+        <p id="notUsedCount" class="text-xl font-bold text-red-600">0</p>
       </div>
       <div class="bg-white shadow rounded-lg p-4">
         <p class="text-sm text-gray-500">ไม่ทราบสถานะ</p>
-        <p id="notTransferredCount" class="text-xl font-bold text-red-600">0</p>
+        <p id="unknownStatusCount" class="text-xl font-bold text-red-600">0</p>
       </div>
     </div>
 
@@ -114,7 +128,7 @@
       const status = $("statusFilter").value.toLowerCase();
       const location = $("locationFilter").value.toLowerCase();
       const setup = $("setupFilter").value.toLowerCase();
-      //const affiliation = $("affiliationFilter").value.toLowerCase();
+      const affiliation = $("affiliationFilter").value.toLowerCase();
       const usageStatus = $("usageStatusFilter").value.toLowerCase();
 
       const filtered = allData.filter(item => {
@@ -123,7 +137,7 @@
           (!status || item.status.toLowerCase() === status) &&
           (!location || item.location.toLowerCase() === location) &&
           (!setup || item.setup.toLowerCase() === setup) &&
-          //(!affiliation || item.affiliation.toLowerCase() === affiliation) &&
+          (!affiliation || item.affiliation.toLowerCase() === affiliation) &&
           (!usageStatus || item.usage.toLowerCase() === usageStatus);
       });
 
@@ -140,6 +154,10 @@
         $("totalDept").textContent = "0";
         $("installedCount").textContent = "0";
         $("notTransferredCount").textContent = "0";
+        $("notUsedCount").textContent = "0";
+        $("unknownStatusCount").textContent = "0";
+        $("inactiveDPISCount").textContent = "0";
+        $("noActivityCount").textContent = "0";
         return;
       }
       noData.classList.add("hidden");
@@ -147,6 +165,10 @@
       $("totalDept").textContent = data.length;
       $("installedCount").textContent = data.filter(item => item.status.toLowerCase() === "ติดตั้งแล้วเสร็จ").length;
       $("notTransferredCount").textContent = data.filter(item => item.status.toLowerCase() === "ยังไม่ถ่ายโอน").length;
+      $("inactiveDPISCount").textContent = data.filter(item => item.usage === "เลิกใช้งาน DPIS").length;
+      $("noActivityCount").textContent = data.filter(item => item.usage === "ไม่มีการเคลื่อนไหว").length;
+      $("unknownStatusCount").textContent = data.filter(item => !item.usage || item.usage.trim() === "").length;
+      $("notUsedCount").textContent = data.filter(item => item.usage !== "ยังใช้งานอยู่" && item.usage.trim() !== "").length;
 
       data.forEach(item => {
         const card = document.createElement("div");
@@ -168,14 +190,13 @@
     };
 
     const resetFilters = () => {
-      ["searchInput", "ministryFilter", "statusFilter", "locationFilter", "setupFilter", "usageStatusFilter"]
+      ["searchInput", "ministryFilter", "statusFilter", "locationFilter", "setupFilter", "affiliationFilter", "usageStatusFilter"]
         .forEach(id => $(id).value = "");
-      renderData(allData);
+      renderData([...allData]);
     };
 
     const populateSelect = (id, options) => {
       const select = $(id);
-      // ล้าง option เดิม (ยกเว้น "ทั้งหมด")
       while (select.options.length > 1) {
         select.remove(1);
       }
@@ -190,7 +211,7 @@
     $("clearBtn").onclick = resetFilters;
     $("searchInput").addEventListener("keypress", e => { if (e.key === "Enter") filterData(); });
 
-    ["ministryFilter", "statusFilter", "locationFilter", "setupFilter", "usageStatusFilter"]
+    ["ministryFilter", "statusFilter", "locationFilter", "setupFilter", "affiliationFilter", "usageStatusFilter"]
       .forEach(id => $(id).addEventListener("change", filterData));
 
     fetch(sheetURL)
@@ -198,28 +219,26 @@
       .then(text => {
         const json = JSON.parse(text.substring(47).slice(0, -2));
         const rows = json.table.rows.slice(1);
-
         allData = rows.map(row => ({
-          ministry: row.c[0]?.v || "",        // A: กระทรวง
-          department: row.c[1]?.v || "",      // B: Title
-          status: row.c[2]?.v || "",          // C: สถานะ
-          setup: row.c[3]?.v || "",           // D: สถานะการใช้งาน
-          location: row.c[4]?.v || "",        // E: Site_Final
-          //affiliation: row.c[5]?.v || "",     // F: สังกัด ก.พ.
-          usage: row.c[6]?.v || ""            // G: การใช้งานจริง
+          ministry: row.c[0]?.v || "",
+          department: row.c[1]?.v || "",
+          status: row.c[2]?.v || "",
+          setup: row.c[3]?.v || "",
+          location: row.c[4]?.v || "",
+          affiliation: row.c[5]?.v || "",
+          usage: row.c[6]?.v || ""
         })).filter(row => row.department);
-        
 
         renderData(allData);
 
         const ministries = [...new Set(allData.map(item => item.ministry).filter(Boolean))];
-        //const affiliations = [...new Set(allData.map(item => item.affiliation).filter(Boolean))];
+        const affiliations = [...new Set(allData.map(item => item.affiliation).filter(Boolean))];
         const locations = [...new Set(allData.map(item => item.location).filter(Boolean))];
         const setups = [...new Set(allData.map(item => item.setup).filter(Boolean))];
         const usages = [...new Set(allData.map(item => item.usage).filter(Boolean))];
 
         populateSelect("ministryFilter", ministries);
-        //populateSelect("affiliationFilter", affiliations);
+        populateSelect("affiliationFilter", affiliations);
         populateSelect("locationFilter", locations);
         populateSelect("setupFilter", setups);
         populateSelect("usageStatusFilter", usages);
