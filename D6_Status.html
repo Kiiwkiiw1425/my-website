@@ -96,7 +96,7 @@
       </div>
       <div class="bg-white shadow rounded-lg p-4">
         <p class="text-sm text-gray-500">ยังใช้งานอยู่</p>
-        <p id="usageDPISCount" class="text-xl font-bold text-red-600">0</p>
+        <p id="activeDPISCount" class="text-xl font-bold text-green-600">0</p>
       </div>
       <div class="bg-white shadow rounded-lg p-4">
         <p class="text-sm text-gray-500">เลิกใช้งาน DPIS</p>
@@ -170,6 +170,7 @@
       $("totalDept").textContent = data.length;
       $("installedCount").textContent = data.filter(item => item.status.toLowerCase() === "ติดตั้งแล้วเสร็จ").length;
       $("notTransferredCount").textContent = data.filter(item => item.status.toLowerCase() === "ยังไม่ถ่ายโอน").length;
+      $("activeDPISCount").textContent = data.filter(item => item.usage === "ยังใช้งานอยู่").length;
       $("inactiveDPISCount").textContent = data.filter(item => item.usage === "เลิกใช้งาน DPIS").length;
       $("noActivityCount").textContent = data.filter(item => item.usage === "ไม่มีการเคลื่อนไหว").length;
       $("unknownStatusCount").textContent = data.filter(item => !item.usage || item.usage.trim() === "").length;
@@ -252,4 +253,5 @@
   </script>
 </body>
 </html>
+
 
